@@ -1,0 +1,285 @@
+/* Two Truths and a Lie. Classes are prefixed "truths-" so games never clash. */
+.truths {
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.truths-round {
+  margin: 0 0 0.75rem;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.truths-section {
+  margin-bottom: 1.25rem;
+}
+.truths-title {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+.truths-hint {
+  margin: 0 0 0.6rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.truths-note {
+  margin: 0.6rem 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.truths-ready {
+  margin: 0 0 0.6rem;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* ---------- writing ---------- */
+.truths-write {
+  display: grid;
+  gap: 0.75rem;
+}
+.truths-write .truths-hint,
+.truths-write .truths-ready {
+  margin-bottom: 0;
+}
+.truths-field {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.6rem;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+.truths-field.is-lie {
+  border-color: var(--bad);
+  background: color-mix(in srgb, var(--bad) 10%, var(--surface));
+}
+.truths-input {
+  display: block;
+  width: 100%;
+  min-height: 3.6rem;
+  margin: 0;
+  padding: 0.55rem 0.7rem;
+  font: inherit;
+  font-size: 16px; /* 16px+ stops iOS zooming into the field on focus */
+  line-height: 1.4;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  resize: none;
+  field-sizing: content;
+}
+.truths-input::placeholder {
+  color: var(--muted);
+  opacity: 0.85;
+}
+.truths-input:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  outline-offset: 1px;
+}
+.truths-field-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.truths-lie-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  min-height: 44px;
+  margin: 0;
+  padding: 0.4rem 1rem;
+  font: inherit;
+  font-weight: 600;
+  color: var(--text);
+  background: transparent;
+  border: 2px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+.truths-lie-btn[aria-pressed='true'] {
+  color: #fff;
+  background: var(--bad);
+  border-color: var(--bad);
+}
+
+/* ---------- statement cards ---------- */
+.truths-list {
+  display: grid;
+  gap: 0.6rem;
+}
+.truths-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 64px;
+  margin: 0;
+  padding: 0.85rem 1rem;
+  font: inherit;
+  font-size: 1.05rem;
+  text-align: start;
+  color: inherit;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+button.truths-card {
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+button.truths-card:active {
+  transform: scale(0.99);
+}
+/* selected (your pick); in the reveal this is a ring, so it can sit on a lie / truth border */
+.truths-card.sel {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.truths-card.truth {
+  border-color: var(--good);
+  background: color-mix(in srgb, var(--good) 10%, var(--surface));
+}
+.truths-card.lie {
+  border-color: var(--bad);
+  background: color-mix(in srgb, var(--bad) 10%, var(--surface));
+}
+.truths-num {
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.truths-body {
+  display: grid;
+  flex: 1;
+  gap: 0.45rem;
+  min-width: 0;
+}
+.truths-text {
+  overflow-wrap: anywhere;
+  line-height: 1.4;
+}
+.truths-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.truths-mark,
+.truths-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.05rem 0.55rem;
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.truths-mark.lie {
+  border-color: var(--bad);
+  background: color-mix(in srgb, var(--bad) 14%, var(--surface));
+}
+.truths-mark.truth {
+  border-color: var(--good);
+  background: color-mix(in srgb, var(--good) 14%, var(--surface));
+}
+.truths-tag {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* ---------- round result ---------- */
+.truths-result {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+  padding: 0.65rem 0.85rem;
+  background: var(--surface-2);
+  border-inline-start: 4px solid var(--muted);
+  border-radius: var(--radius);
+  font-weight: 600;
+}
+.truths-result.ok {
+  border-inline-start-color: var(--good);
+}
+.truths-result.no {
+  border-inline-start-color: var(--bad);
+}
+.truths-point {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  max-inline-size: 100%;
+  padding: 0.15rem 0.65rem;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 999px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.truths-point i {
+  flex: none;
+  inline-size: 0.8rem;
+  block-size: 0.8rem;
+  border-radius: 50%;
+}
+.truths-point span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.truths-point.p0 {
+  border-color: var(--p0);
+}
+.truths-point.p0 i {
+  background: var(--p0);
+}
+.truths-point.p1 {
+  border-color: var(--p1);
+}
+.truths-point.p1 i {
+  background: var(--p1);
+}
+
+.truths-actions {
+  margin-top: 1rem;
+}
+.truths .actions {
+  justify-content: center;
+}
