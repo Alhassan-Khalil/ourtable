@@ -1,0 +1,212 @@
+/* Ultimate Tic-Tac-Toe. Classes are prefixed "uttt-" so games never clash. */
+.uttt {
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+/*
+ * Size check at the main target, a 343px column (375px phone minus 16px gutters):
+ *   small board  = (343 - 2 * 6px board gap) / 3          = 110.3px
+ *   cell         = (110.3 - 2 * 2px padding - 2 * 2px gap) / 3 = 34.1px
+ * Highlight rings are outlines, so they take no layout space (they sit in the 6px gap).
+ */
+.uttt-board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.uttt-small {
+  --own: var(--muted);
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2px;
+  padding: 2px;
+  background: var(--surface-2);
+  border-radius: 9px;
+  box-shadow: 0 0 0 1px var(--border);
+  transition:
+    opacity 0.2s,
+    background 0.2s;
+}
+
+.uttt-cell {
+  -webkit-appearance: none;
+  appearance: none;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  aspect-ratio: 1;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: var(--surface);
+  cursor: default;
+}
+.uttt-cell:focus-visible {
+  outline-offset: -2px;
+  position: relative;
+  z-index: 1;
+}
+
+/* the marks: ✕ is seat 0, ◯ is seat 1 */
+.uttt-mark {
+  display: block;
+  width: 74%;
+  aspect-ratio: 1;
+  fill: none;
+  stroke-width: 3.4;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+.uttt-mark.p0 {
+  stroke: var(--p0);
+}
+.uttt-mark.p1 {
+  stroke: var(--p1);
+}
+
+/* the last move */
+.uttt-cell.last.p0 {
+  background: color-mix(in srgb, var(--p0) 20%, var(--surface));
+  box-shadow: inset 0 0 0 2px var(--p0);
+}
+.uttt-cell.last.p1 {
+  background: color-mix(in srgb, var(--p1) 20%, var(--surface));
+  box-shadow: inset 0 0 0 2px var(--p1);
+}
+.uttt-cell.last .uttt-mark {
+  animation: uttt-pop 0.25s ease-out;
+}
+
+/* ----- whose board it is ----- */
+/* my turn: the board(s) I must play in */
+.uttt-small.hot {
+  background: var(--accent-soft);
+  outline: 2px solid var(--accent);
+}
+@media (hover: hover) {
+  .uttt-cell:not(:disabled) {
+    cursor: pointer;
+  }
+  .uttt-cell:not(:disabled):hover {
+    background: var(--accent-soft);
+    box-shadow: inset 0 0 0 2px var(--accent);
+  }
+}
+.uttt-cell:not(:disabled):active {
+  background: var(--accent-soft);
+}
+/* my turn: boards I may not play in */
+.uttt-small.dim {
+  opacity: 0.5;
+}
+/* partner's turn: where they have to play, in their colour */
+.uttt-small.aim {
+  outline: 2px dashed var(--aim);
+}
+.uttt-small.aim-p0 {
+  --aim: var(--p0);
+}
+.uttt-small.aim-p1 {
+  --aim: var(--p1);
+}
+
+/* ----- finished small boards ----- */
+.uttt-small.won-p0 {
+  --own: var(--p0);
+}
+.uttt-small.won-p1 {
+  --own: var(--p1);
+}
+.uttt-small.won {
+  background: color-mix(in srgb, var(--own) 16%, var(--surface-2));
+}
+.uttt-small.won .uttt-cell {
+  opacity: 0.3;
+}
+/* one big mark over the won board */
+.uttt-claim {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.uttt-claim .uttt-mark {
+  width: 80%;
+  stroke-width: 2.6;
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.25));
+  animation: uttt-pop 0.35s ease-out;
+}
+/* drawn board: greyed out, belongs to nobody */
+.uttt-small.drawn {
+  opacity: 0.5;
+  filter: grayscale(1);
+}
+
+/* ----- game over: the winning line of boards ----- */
+.uttt-small.win {
+  outline: 3px solid var(--own);
+  box-shadow: 0 0 14px 2px color-mix(in srgb, var(--own) 55%, transparent);
+  z-index: 1;
+}
+.uttt-small.fade {
+  opacity: 0.55;
+}
+
+@keyframes uttt-pop {
+  from {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .uttt-cell.last .uttt-mark,
+  .uttt-claim .uttt-mark {
+    animation: none;
+  }
+}
+
+/* ----- legend and hint ----- */
+.uttt-legend {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.1rem;
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+.uttt-sym {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+  max-width: 48%;
+}
+.uttt-sym-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.uttt-sym .uttt-mark {
+  flex: none;
+  width: 1.1rem;
+  stroke-width: 4;
+}
+.uttt-hint {
+  margin: 0.75rem 0 0;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.uttt .actions {
+  justify-content: center;
+}
