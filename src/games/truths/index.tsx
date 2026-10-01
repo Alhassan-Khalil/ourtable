@@ -121,8 +121,12 @@ function Write({ opp, oppWrote, send }: { opp: string; oppWrote: boolean; send: 
               setItems((prev) => prev.map((x, k) => (k === i ? value : x)) as Items);
             }}
             onKeyDown={(e) => {
-              // One statement is one line: no line breaks.
-              if (e.key === 'Enter' && !e.shiftKey) e.preventDefault();
+              // One statement is one line: Enter jumps to the next statement (and closes the keyboard after the last).
+              if (e.key !== 'Enter' || e.shiftKey) return;
+              e.preventDefault();
+              const next = e.currentTarget.form?.querySelectorAll('textarea')[i + 1];
+              if (next) next.focus();
+              else e.currentTarget.blur();
             }}
           />
           <div class="truths-field-foot">

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { other, type BoardProps, type GameDef } from '../../core/types';
 import { t, tKey } from '../../i18n';
 import { EndActions, ScoreBar, TurnBanner } from '../../ui/common';
@@ -97,6 +97,18 @@ function triedLetters(guesses: Guess[]) {
 
 function PickPanel({ v, opp, send }: { v: WordleView; opp: string; send: (m: WordleMove) => void }) {
   const [text, setText] = useState('');
+  // Sent but not confirmed yet: block a second tap. Unlocks after 3s in case the send was lost.
+  // The ref guards instantly (two taps in one frame); the state greys the button out.
+  const sending = useRef(false);
+  const [sent, setSent] = useState(false);
+  useEffect(() => {
+    if (!sent) return;
+    const id = setTimeout(() => {
+      sending.current = false;
+      setSent(false);
+    }, 3000);
+    return () => clearTimeout(id);
+  }, [sent]);
 
   if (v.mySecret !== null) {
     const chars = letters(v.mySecret);
@@ -120,7 +132,10 @@ function PickPanel({ v, opp, send }: { v: WordleView; opp: string; send: (m: Wor
         class="wordle-form"
         onSubmit={(e) => {
           e.preventDefault();
-          if (ok) send({ type: 'secret', word: c.word });
+          if (!ok || sending.current) return;
+          sending.current = true;
+          setSent(true);
+          send({ type: 'secret', word: c.word });
         }}
       >
         <input
@@ -136,7 +151,7 @@ function PickPanel({ v, opp, send }: { v: WordleView; opp: string; send: (m: Wor
           aria-label={tg('secretLabel')}
           onInput={(e) => setText(e.currentTarget.value)}
         />
-        <button class="btn primary" disabled={!ok}>
+        <button class="btn primary" disabled={!ok || sent}>
           {tg('lockIn')}
         </button>
       </form>

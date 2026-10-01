@@ -144,15 +144,17 @@ function useShownPositions(s: SnakesState): [number, number] {
 
 function Board({ view: s, me, names, send, rematch, toLobby }: BoardProps<SnakesState, SnakesMove>) {
   const opp = names[other(me)];
-  const myTurn = s.winner === null && s.turn === me;
   const shown = useShownPositions(s);
+  // A winning ladder (80 → 100): announce the win only once the token has made the jump.
+  const winner = shown === s.pos ? s.winner : null;
+  const myTurn = winner === null && s.turn === me;
   const firstRolls = useRef(s.rolls);
   const [cooling, setCooling] = useState(false);
 
   const status =
-    s.winner === me
+    winner === me
       ? t('youWin')
-      : s.winner !== null
+      : winner !== null
         ? t('oppWins', opp)
         : myTurn
           ? tg('yourTurn')
@@ -183,8 +185,8 @@ function Board({ view: s, me, names, send, rematch, toLobby }: BoardProps<Snakes
 
   return (
     <div class="snakes">
-      <TurnBanner text={status} active={myTurn} over={s.winner !== null} />
-      <ScoreBar names={names} me={me} scores={s.pos} turn={s.winner === null ? s.turn : null} />
+      <TurnBanner text={status} active={myTurn} over={winner !== null} />
+      <ScoreBar names={names} me={me} scores={s.pos} turn={winner === null ? s.turn : null} />
 
       {/* Geometry, so always left-to-right. */}
       <svg class="snakes-board" viewBox={`0 0 ${SIZE} ${HEIGHT}`} dir="ltr" role="img" aria-label={tg('boardLabel')}>
@@ -239,7 +241,7 @@ function Board({ view: s, me, names, send, rematch, toLobby }: BoardProps<Snakes
           return (
             <g
               key={p}
-              class={`snakes-token p${p} ${s.winner === p ? 'win' : ''}`}
+              class={`snakes-token p${p} ${winner === p ? 'win' : ''}`}
               style={{ transform: `translate(${r2(x)}px, ${r2(y)}px)` }}
             >
               <g class="snakes-bob">
@@ -256,7 +258,7 @@ function Board({ view: s, me, names, send, rematch, toLobby }: BoardProps<Snakes
         <p class={`snakes-msg ${l !== null ? `p${l.by}` : ''}`} aria-live="polite">
           {message}
         </p>
-        {s.winner === null && (
+        {winner === null && (
           <div class="snakes-roll-row">
             <Die
               key={s.rolls}
@@ -271,7 +273,7 @@ function Board({ view: s, me, names, send, rematch, toLobby }: BoardProps<Snakes
         )}
       </div>
 
-      {s.winner !== null && <EndActions rematch={rematch} toLobby={toLobby} />}
+      {winner !== null && <EndActions rematch={rematch} toLobby={toLobby} />}
     </div>
   );
 }
