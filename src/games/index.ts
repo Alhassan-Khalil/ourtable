@@ -4,11 +4,12 @@ import { connect4 } from './connect4';
 import { dots } from './dots';
 import { guessWho } from './guesswho';
 import { snakes } from './snakes';
+import { story } from './story';
 import { uttt } from './uttt';
 import { wordle } from './wordle';
 
 /** Add a new game here. Order = order in the lobby. */
-export const GAME_LIST: GameDef[] = [guessWho, connect4, dots, uttt, snakes, wordle];
+export const GAME_LIST: GameDef[] = [guessWho, connect4, dots, uttt, snakes, wordle, story];
 
 export const GAMES: Record<string, GameDef> = Object.fromEntries(GAME_LIST.map((g) => [g.id, g]));
 
