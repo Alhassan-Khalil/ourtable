@@ -1,0 +1,273 @@
+/* Snakes and Ladders. Classes are prefixed "snakes-" so games never clash. */
+.snakes {
+  max-width: 520px;
+  margin: 0 auto;
+  /* this game's own colours, built from the theme where possible */
+  --sn-a: color-mix(in srgb, var(--p1) 10%, var(--surface));
+  --sn-b: color-mix(in srgb, var(--accent) 13%, var(--surface));
+  --sn-wood: #b9772c;
+  --sn-wood-dark: #7a4a17;
+  --sn-tone0: #3fa34d;
+  --sn-tone1: #8e6bc4;
+  --sn-tone2: #d98a1c;
+  --sn-tone3: #4a7fd1;
+  --sn-die: #ffffff;
+  --sn-pip: #1f2430;
+}
+@media (prefers-color-scheme: dark) {
+  .snakes {
+    --sn-wood: #c98a3f;
+    --sn-wood-dark: #8a5a22;
+    --sn-tone0: #4cb85a;
+    --sn-tone1: #a184d8;
+    --sn-tone2: #e69a2e;
+    --sn-tone3: #5e93e6;
+    --sn-die: #eceef3;
+  }
+}
+
+.snakes-board {
+  direction: ltr; /* the dir attribute does nothing on <svg>; SVG text needs the CSS property */
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  user-select: none;
+}
+
+/* squares */
+.snakes-cell.a {
+  fill: var(--sn-a);
+}
+.snakes-cell.b {
+  fill: var(--sn-b);
+}
+.snakes-cell.end {
+  fill: var(--accent-soft);
+}
+.snakes-start {
+  fill: var(--surface-2);
+}
+.snakes-start-label {
+  font-size: 3.2px;
+  font-weight: 700;
+  fill: var(--muted);
+}
+.snakes-num {
+  font-size: 2.8px;
+  font-weight: 700;
+  fill: var(--muted);
+  paint-order: stroke;
+  stroke: var(--surface);
+  stroke-width: 0.7px;
+  stroke-linejoin: round;
+}
+.snakes-num.end {
+  fill: var(--accent);
+}
+
+/* ladders */
+.snakes-ladder path {
+  fill: none;
+  stroke-linecap: round;
+}
+.snakes-ladder-shadow {
+  stroke: #000;
+  stroke-width: 0.9px;
+  opacity: 0.16;
+  transform: translate(0.4px, 0.5px);
+}
+.snakes-rails {
+  stroke: var(--sn-wood-dark);
+  stroke-width: 0.85px;
+}
+.snakes-rungs {
+  stroke: var(--sn-wood);
+  stroke-width: 0.65px;
+}
+
+/* snakes */
+.snakes-snake.tone0 {
+  --c: var(--sn-tone0);
+}
+.snakes-snake.tone1 {
+  --c: var(--sn-tone1);
+}
+.snakes-snake.tone2 {
+  --c: var(--sn-tone2);
+}
+.snakes-snake.tone3 {
+  --c: var(--sn-tone3);
+}
+.snakes-snake path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.snakes-snake-edge {
+  stroke: color-mix(in srgb, var(--c) 55%, #000);
+  stroke-width: 3.6px;
+}
+.snakes-snake-body {
+  stroke: var(--c);
+  stroke-width: 2.6px;
+}
+.snakes-snake-scales {
+  stroke: color-mix(in srgb, var(--c) 50%, #fff);
+  stroke-width: 0.9px;
+  stroke-dasharray: 0.01 2.2;
+}
+.snakes-snake-head {
+  fill: var(--c);
+  stroke: color-mix(in srgb, var(--c) 55%, #000);
+  stroke-width: 0.5px;
+}
+.snakes-eye {
+  fill: #fff;
+}
+.snakes-pupil {
+  fill: #111;
+}
+.snakes .snakes-snake .snakes-tongue {
+  stroke: var(--bad);
+  stroke-width: 0.4px;
+}
+
+/* tokens glide to their new square */
+.snakes-token {
+  transition: transform 0.55s cubic-bezier(0.3, 0.7, 0.3, 1);
+}
+.snakes-piece {
+  fill: var(--p0);
+  stroke: var(--surface);
+  stroke-width: 0.9px;
+}
+.snakes-token.p1 .snakes-piece {
+  fill: var(--p1);
+}
+.snakes-shine {
+  fill: #fff;
+  opacity: 0.4;
+}
+.snakes-shadow {
+  fill: #000;
+  opacity: 0.22;
+}
+.snakes-token.win .snakes-bob {
+  animation: snakes-bob 0.7s ease-in-out infinite alternate;
+}
+@keyframes snakes-bob {
+  to {
+    transform: translateY(-1.6px);
+  }
+}
+
+/* roll area: stays in reach of the thumb while the board scrolls */
+.snakes-controls {
+  position: sticky;
+  bottom: max(0.5rem, env(safe-area-inset-bottom));
+  z-index: 4;
+  margin-top: 0.75rem;
+  padding: 0.6rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.snakes-msg {
+  margin: 0;
+  padding-inline-start: 0.6rem;
+  border-inline-start: 4px solid var(--border);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.35;
+  min-height: 1.35em;
+}
+.snakes-msg.p0 {
+  border-inline-start-color: var(--p0);
+}
+.snakes-msg.p1 {
+  border-inline-start-color: var(--p1);
+}
+.snakes-roll-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.7rem;
+  margin-top: 0.6rem;
+}
+.snakes-roll {
+  flex: 1;
+  min-height: 64px;
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+.snakes-roll:not(:disabled) {
+  animation: snakes-ping 1.8s ease-out infinite;
+}
+@keyframes snakes-ping {
+  from {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent);
+  }
+  to {
+    box-shadow: 0 0 0 14px transparent;
+  }
+}
+
+/* the die: 3 × 3 grid of pips, tumbles in whenever a new roll arrives */
+.snakes-die {
+  flex: none;
+  display: grid;
+  grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+  width: 64px;
+  height: 64px;
+  padding: 8px;
+  background: var(--sn-die);
+  border: 3px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 2px 0 rgb(0 0 0 / 0.14);
+}
+.snakes-die.p0 {
+  border-color: var(--p0);
+}
+.snakes-die.p1 {
+  border-color: var(--p1);
+}
+.snakes-die i {
+  place-self: center;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+}
+.snakes-die i.on {
+  background: var(--sn-pip);
+}
+.snakes-die.blank::after {
+  content: '?';
+  grid-area: 2 / 2;
+  place-self: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--muted);
+}
+.snakes-die.roll {
+  animation: snakes-tumble 0.55s ease-out;
+}
+@keyframes snakes-tumble {
+  0% {
+    transform: rotate(-220deg) scale(0.55);
+  }
+  60% {
+    transform: rotate(14deg) scale(1.12);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+.snakes .actions {
+  justify-content: center;
+}

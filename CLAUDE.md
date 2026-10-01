@@ -59,6 +59,8 @@ Guess Who and Connect Four predate this and keep their texts in `src/i18n.ts`.
   Never glue a prefix like "لـ" onto a name (breaks on names starting with "ال").
 - Use logical CSS properties (`inset-inline-end`, `margin-inline-start`, `text-align: start`) so RTL works.
 - Boards whose geometry players talk about (Connect Four columns) are forced `dir="ltr"`.
+  On an `<svg>` the `dir` attribute does nothing: use CSS `direction: ltr` or SVG `<text>` inherits RTL
+  from the page and right-aligns (numbers get cut off at the left edge).
 - Phone layout is the main target (375px wide). Inputs stay >= 16px on phones (iOS zoom).
 
 ## Gotchas
