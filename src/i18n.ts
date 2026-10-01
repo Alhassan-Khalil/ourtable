@@ -113,6 +113,7 @@ const en = {
   oppWins: (n: string) => `${n} wins`,
   oppTurn: (n: string) => `${n}’s turn…`,
   you: 'You',
+  draw: 'It’s a draw!',
 
   // Guess Who
   'gw.name': 'Guess Who',
@@ -270,6 +271,7 @@ const ar: Dict = {
   oppWins: (n) => `الفوز من نصيب ${n}`,
   oppTurn: (n) => `دور ${n}…`,
   you: 'أنت',
+  draw: 'تعادل!',
 
   'gw.name': 'خمّن مَن',
   'gw.blurb': 'اسأل أسئلة جوابها نعم أو لا لتكتشف الشخص السري. بالوجوه الكلاسيكية أو بصوركما.',
@@ -345,8 +347,29 @@ export function t<K extends Key>(key: K, ...args: Args<K>): string {
 
 /** For keys that arrive at runtime (GameError / link details). Unknown keys are shown as-is. */
 export function tKey(key: string): string {
-  const v = (DICTS[lang.value] as Record<string, unknown>)[key];
+  const v = (DICTS[lang.value] as Record<string, unknown>)[key] ?? GAME_STRINGS[lang.value][key];
   return typeof v === 'string' ? v : key;
+}
+
+type Entry = string | ((...a: any[]) => string);
+
+/** Strings registered by games via defineStrings, under "<gameId>.<key>". Used by tKey for GameErrors. */
+const GAME_STRINGS: Record<Lang, Record<string, Entry>> = { ar: {}, en: {} };
+
+/**
+ * A game's own texts, kept in its folder (src/games/<id>/strings.ts) so games never edit this file.
+ * `en` defines the keys and argument types; `ar` must have exactly the same keys.
+ * Returns a typed translator for this game. Keys are also registered as "<id>.<key>", which is
+ * what a GameError message must be: `throw new GameError('dots.err.taken')`.
+ */
+export function defineStrings<D extends Record<string, Entry>>(id: string, en: D, ar: NoInfer<{ [K in keyof D]: D[K] }>) {
+  for (const [k, v] of Object.entries(en)) GAME_STRINGS.en[`${id}.${k}`] = v;
+  for (const [k, v] of Object.entries(ar)) GAME_STRINGS.ar[`${id}.${k}`] = v as Entry;
+  const dicts = { en, ar } as Record<Lang, Record<string, Entry>>;
+  return <K extends keyof D & string>(key: K, ...args: D[K] extends (...a: infer A) => string ? A : []): string => {
+    const v = dicts[lang.value][key];
+    return typeof v === 'function' ? v(...args) : v;
+  };
 }
 
 if (typeof document !== 'undefined') {

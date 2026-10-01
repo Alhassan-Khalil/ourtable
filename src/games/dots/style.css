@@ -1,0 +1,63 @@
+/* Dots and Boxes. Classes are prefixed "dots-" so games never clash. */
+.dots {
+  max-width: 520px;
+  margin: 0 auto;
+}
+.dots-board {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  touch-action: manipulation;
+  user-select: none;
+}
+.dots-dot {
+  fill: var(--text);
+}
+.dots-line {
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+.dots-line.empty {
+  stroke: var(--border);
+  stroke-width: 0.5;
+  stroke-dasharray: 1 1.4;
+}
+.dots-line.p0 {
+  stroke: var(--p0);
+}
+.dots-line.p1 {
+  stroke: var(--p1);
+}
+.dots-line.last {
+  animation: dots-pop 0.6s ease-out;
+}
+@keyframes dots-pop {
+  from {
+    stroke-width: 3;
+  }
+}
+.dots-box.p0 {
+  fill: color-mix(in srgb, var(--p0) 35%, transparent);
+}
+.dots-box.p1 {
+  fill: color-mix(in srgb, var(--p1) 35%, transparent);
+}
+.dots-hit {
+  fill: transparent;
+  cursor: pointer;
+  outline: none;
+}
+/* preview the line under the finger / mouse */
+.can-play .dots-slot:hover .dots-line.empty,
+.can-play .dots-slot:has(.dots-hit:focus-visible) .dots-line.empty {
+  stroke: var(--accent);
+  stroke-width: 1.2;
+  stroke-dasharray: none;
+}
+.dots .actions {
+  justify-content: center;
+}

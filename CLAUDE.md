@@ -32,10 +32,26 @@ src/i18n.ts         all UI text, ar + en
 
 ## Adding a game
 
-1. `src/games/<id>/logic.ts`: `init`, `apply` (pure, throw `GameError('err.key')`), `view`
-2. `src/games/<id>/index.tsx`: `GameDef` with `Board` (and optional `Setup`, `rematchOpts`)
-3. Register in `src/games/index.ts`, add strings for **both** languages in `src/i18n.ts`
-4. Tests next to the logic
+A game is one self-contained folder. **`src/games/dots/` is the reference: copy its shape.**
+
+```
+src/games/<id>/
+  logic.ts       init / apply / (view): pure, no DOM. Illegal move → throw new GameError(key)
+  logic.test.ts  vitest, next to the logic
+  strings.ts     export const tg = defineStrings('<id>', en, ar): both languages, same keys
+  style.css      classes prefixed "<id>-" (imported by index.tsx)
+  index.tsx      GameDef + Board component
+```
+
+1. GameError keys: shared ones from `src/i18n.ts` (`err.over`, `err.notYourTurn`, `err.generic`, …)
+   or the game's own as `'<id>.err.something'` (defined in strings.ts as `'err.something'`).
+2. Name/blurb in `GameDef` are getters calling `tg(...)`, so they follow the language switch.
+3. Shared UI in `src/ui/common.tsx`: `TurnBanner`, `ScoreBar`, `EndActions`. Shared texts via `t()`:
+   `youWin`, `oppWins(n)`, `oppTurn(n)`, `draw`, `you`, `yes`, `no`, `cancel`.
+4. Randomness (dice, shuffles) is fine inside `apply`/`init`: only the host runs them.
+5. Register in `src/games/index.ts` (the only shared file a new game touches).
+
+Guess Who and Connect Four predate this and keep their texts in `src/i18n.ts`.
 
 ## Conventions
 

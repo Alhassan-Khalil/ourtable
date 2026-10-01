@@ -1011,3 +1011,50 @@ button:focus-visible {
     transition: none !important;
   }
 }
+
+/* ---------- shared: score bar ---------- */
+.score-bar {
+  display: flex;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+.score-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  font-weight: 600;
+  max-width: 48%;
+}
+.score-chip i {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex: none;
+}
+.score-chip.p0 i {
+  background: var(--p0);
+}
+.score-chip.p1 i {
+  background: var(--p1);
+}
+.score-chip.turn.p0 {
+  border-color: var(--p0);
+}
+.score-chip.turn.p1 {
+  border-color: var(--p1);
+}
+.score-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.score-chip b {
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
+}
