@@ -1,0 +1,12 @@
+{
+  "name": "طاولتنا · OurTable",
+  "short_name": "طاولتنا",
+  "description": "ألعاب لوحية لشخصين، أينما كنتما.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#1f2937",
+  "icons": [{ "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}
