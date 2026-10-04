@@ -1,0 +1,244 @@
+/* Battleship. Classes are prefixed "bs-" so games never clash. */
+.bs {
+  --bs-sea: #cfe3f7;
+  --bs-sea-line: #b3d0ee;
+  --bs-ship: #64748b;
+  --bs-ghost: color-mix(in srgb, var(--bs-ship) 45%, transparent);
+  max-width: 520px;
+  margin: 0 auto;
+}
+@media (prefers-color-scheme: dark) {
+  .bs {
+    --bs-sea: #17304d;
+    --bs-sea-line: #21406a;
+    --bs-ship: #94a3b8;
+  }
+}
+
+.bs-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 0.7rem;
+  margin-bottom: 0.75rem;
+}
+.bs-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 0.45rem;
+}
+.bs-hint {
+  margin: 0 0 0.6rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.bs-note {
+  margin: 0.6rem 0 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--good);
+}
+.bs-message {
+  text-align: center;
+  font-weight: 700;
+  min-height: 1.5em;
+  margin: 0 0 0.5rem;
+}
+.bs-message.hit {
+  color: var(--bad);
+}
+
+/*
+ * Size check at a 343px column: card padding 2 × 0.7rem (~22px) leaves ~321px;
+ * 8 cells + 7 gaps of 3px → each cell ≈ 37.5px. The small sea is about half that.
+ */
+.bs-sea {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 3px;
+  padding: 3px;
+  background: var(--bs-sea-line);
+  border-radius: 10px;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.bs-sea.small {
+  gap: 2px;
+  padding: 2px;
+  border-radius: 7px;
+}
+
+.bs-cell {
+  -webkit-appearance: none;
+  appearance: none;
+  position: relative;
+  aspect-ratio: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: var(--bs-sea);
+  cursor: default;
+}
+.bs-sea.small .bs-cell {
+  border-radius: 3px;
+}
+.bs-cell:not(:disabled) {
+  cursor: pointer;
+}
+.bs-cell:not(:disabled):hover {
+  background: color-mix(in srgb, var(--accent) 30%, var(--bs-sea));
+}
+
+/* ships: square in the middle, rounded at the bow and stern */
+.bs-cell.ship {
+  background: var(--bs-ship);
+  border-radius: 2px;
+}
+.bs-cell.ship.ghost {
+  background: var(--bs-ghost);
+}
+.bs-cell.ship.bow.h {
+  border-start-start-radius: 999px;
+  border-end-start-radius: 999px;
+}
+.bs-cell.ship.stern.h {
+  border-start-end-radius: 999px;
+  border-end-end-radius: 999px;
+}
+.bs-cell.ship.bow.v {
+  border-start-start-radius: 999px;
+  border-start-end-radius: 999px;
+}
+.bs-cell.ship.stern.v {
+  border-end-start-radius: 999px;
+  border-end-end-radius: 999px;
+}
+.bs-cell.selected {
+  background: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+/* shots */
+.bs-cell.miss::after {
+  content: '';
+  position: absolute;
+  inset: 38%;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--text) 45%, transparent);
+}
+.bs-cell.hit {
+  background: color-mix(in srgb, var(--bad) 75%, var(--bs-ship));
+}
+.bs-cell.hit::after {
+  content: '✕';
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.05rem;
+  line-height: 1;
+}
+.bs-sea.small .bs-cell.hit::after {
+  font-size: 0.6rem;
+}
+.bs-cell.last {
+  box-shadow: 0 0 0 2px var(--accent);
+  z-index: 1;
+  animation: bs-splash 0.5s ease-out;
+}
+@keyframes bs-splash {
+  from {
+    transform: scale(1.25);
+  }
+}
+
+/* invalid move while placing */
+.bs-bump {
+  animation: bs-bump 0.3s;
+}
+@keyframes bs-bump {
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+.bs-tools {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin: 0.7rem 0;
+}
+
+/* bottom row on the battle screen: my small sea + partner's fleet status */
+.bs-bottom {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 0.6rem;
+  align-items: start;
+}
+.bs-bottom .bs-card {
+  margin-bottom: 0;
+}
+.bs-fleet {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.7rem;
+  display: grid;
+  gap: 0.45rem;
+}
+.bs-bar {
+  display: flex;
+  gap: 3px;
+  justify-self: start; /* only as wide as the ship, so the strike-through fits it */
+}
+.bs-bar i {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  background: var(--bs-ship);
+}
+.bs-bar i:first-child {
+  border-start-start-radius: 999px;
+  border-end-start-radius: 999px;
+}
+.bs-bar i:last-child {
+  border-start-end-radius: 999px;
+  border-end-end-radius: 999px;
+}
+.bs-bar.down i {
+  background: var(--bad);
+  opacity: 0.45;
+}
+.bs-bar.down {
+  position: relative;
+}
+.bs-bar.down::after {
+  content: '';
+  position: absolute;
+  inset-inline: -3px;
+  top: 50%;
+  height: 2px;
+  background: var(--bad);
+}
+
+.bs .actions {
+  justify-content: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bs-cell.last,
+  .bs-bump {
+    animation: none;
+  }
+}
