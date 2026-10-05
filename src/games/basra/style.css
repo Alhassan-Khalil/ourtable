@@ -1,0 +1,509 @@
+/* Basra. Classes are prefixed "basra-". Cards keep a light face in both themes, like real cards. */
+.basra {
+  max-width: 520px;
+  margin: 0 auto;
+  --basra-face: #fffdf8;
+  --basra-ink: #1f2430;
+  --basra-red: #d6293e;
+  --basra-felt: #24804f;
+  --basra-felt-2: #1a6040;
+  --basra-gold: #ffd54a;
+}
+@media (prefers-color-scheme: dark) {
+  .basra {
+    --basra-face: #ebe7de;
+    --basra-felt: #1d5a3c;
+    --basra-felt-2: #13402a;
+  }
+}
+
+/* --c is "this player's colour" */
+.basra-p0 {
+  --c: var(--p0);
+}
+.basra-p1 {
+  --c: var(--p1);
+}
+.basra-p2 {
+  --c: var(--p2);
+}
+
+/* ---------- a card ---------- */
+.basra-card {
+  --w: 54px;
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: var(--w);
+  aspect-ratio: 5 / 7;
+  border-radius: calc(var(--w) * 0.1);
+  background: var(--basra-face);
+  color: var(--basra-ink);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.3),
+    inset 0 0 0 1px rgb(0 0 0 / 0.08);
+  font-weight: 800;
+  line-height: 1;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.basra-card.red {
+  color: var(--basra-red);
+}
+.basra-corner {
+  position: absolute;
+  top: 5%;
+  left: 7%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: calc(var(--w) * 0.25);
+  letter-spacing: -0.06em;
+}
+.basra-corner i {
+  font-style: normal;
+  font-size: 0.9em;
+  margin-top: 0.05em;
+}
+.basra-corner.end {
+  top: auto;
+  left: auto;
+  bottom: 5%;
+  right: 7%;
+  transform: rotate(180deg);
+}
+.basra-pip {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: calc(var(--w) * 0.46);
+}
+.basra-pip.court {
+  inset: 22% 27%;
+  font-size: calc(var(--w) * 0.36);
+  border: 1.5px solid color-mix(in srgb, currentColor 45%, transparent);
+  border-radius: calc(var(--w) * 0.06);
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+.basra-card.big {
+  --w: clamp(66px, 20vw, 86px);
+}
+/* a mini card: just the rank over the suit */
+.basra-card.mini {
+  --w: 30px;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.15);
+}
+.basra-card.mini .basra-pip,
+.basra-card.mini .basra-corner.end {
+  display: none;
+}
+.basra-card.mini .basra-corner {
+  inset: 0;
+  justify-content: center;
+  font-size: calc(var(--w) * 0.36);
+}
+
+/* a face-down card */
+.basra-back {
+  --w: 54px;
+  display: inline-block;
+  flex: none;
+  width: var(--w);
+  aspect-ratio: 5 / 7;
+  border-radius: calc(var(--w) * 0.12);
+  border: 2px solid var(--basra-face);
+  background: repeating-linear-gradient(45deg, color-mix(in srgb, var(--board) 75%, #fff) 0 2px, var(--board) 2px 5px);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.3);
+}
+.basra-back.tiny {
+  --w: 18px;
+  border-width: 1.5px;
+}
+
+/* ---------- the other players ---------- */
+.basra-others {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+.basra-seat {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.6rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+.basra-seat.turn {
+  border-color: var(--c);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--c) 30%, transparent);
+}
+.basra-seat-name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 700;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.basra-seat-name i,
+.basra-score thead i {
+  display: inline-block;
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--c);
+}
+.basra-fan {
+  display: inline-flex;
+  flex: none;
+  min-width: 18px;
+}
+.basra-fan .basra-back + .basra-back {
+  margin-inline-start: -11px;
+}
+
+/* a taken pile, with a star per basra */
+.basra-pile {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex: none;
+}
+.basra-pile-stack {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 32px;
+  border-radius: 4px;
+  background: var(--board);
+  color: #fff;
+  font-size: 0.8rem;
+  box-shadow:
+    2px 2px 0 var(--surface),
+    3px 3px 0 color-mix(in srgb, var(--board) 60%, var(--surface));
+}
+.basra-stars {
+  color: #f0a500;
+  font-size: 0.95rem;
+  letter-spacing: -1px;
+}
+
+/* ---------- the table ---------- */
+.basra-felt {
+  position: relative;
+  padding: 0.55rem 0.6rem 0.9rem;
+  border-radius: var(--radius);
+  background: radial-gradient(ellipse at 50% 35%, var(--basra-felt), var(--basra-felt-2));
+  box-shadow:
+    inset 0 0 0 3px rgb(0 0 0 / 0.12),
+    var(--shadow);
+  color: #fff;
+}
+.basra-felt-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.55rem;
+  font-size: 0.8rem;
+  color: rgb(255 255 255 / 0.85);
+}
+.basra-deck {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.basra-floor {
+  --fw: clamp(46px, 14vw, 62px);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: center;
+  gap: 8px;
+  min-height: calc(var(--fw) * 1.4 + 6px);
+}
+.basra-floor .basra-card {
+  --w: var(--fw);
+  transition:
+    transform 0.15s,
+    opacity 0.15s,
+    box-shadow 0.15s;
+}
+.basra-floor.preview .basra-card:not(.take):not(.ghost) {
+  opacity: 0.5;
+}
+.basra-floor .basra-card.take {
+  transform: translateY(-5px);
+  box-shadow:
+    0 0 0 3px var(--basra-gold),
+    0 6px 12px rgb(0 0 0 / 0.3);
+}
+.basra-floor .basra-card.ghost {
+  opacity: 0.55;
+  outline: 2px dashed #fff;
+  outline-offset: 2px;
+}
+.basra-floor .basra-card.new {
+  animation: basra-drop 0.35s ease-out;
+}
+@keyframes basra-drop {
+  from {
+    transform: translateY(-26px) scale(1.12);
+    opacity: 0;
+  }
+}
+.basra-empty {
+  align-self: center;
+  color: rgb(255 255 255 / 0.7);
+  font-size: 0.9rem;
+}
+.basra-carry {
+  margin: 0.55rem 0 0;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #ffe9a8;
+}
+
+/* BASRA! */
+.basra-burst {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.basra-burst span {
+  padding: 0.25em 0.9em;
+  border-radius: 999px;
+  background: var(--basra-gold);
+  color: #3a2a00;
+  font-size: 2.3rem;
+  font-weight: 900;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.35);
+  animation: basra-pop 2s ease-out forwards;
+}
+@keyframes basra-pop {
+  0% {
+    transform: scale(0.3) rotate(-8deg);
+    opacity: 0;
+  }
+  18% {
+    transform: scale(1.12) rotate(2deg);
+    opacity: 1;
+  }
+  30% {
+    transform: none;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-14px) scale(1.04);
+    opacity: 0;
+  }
+}
+
+/* ---------- what just happened ---------- */
+.basra-msg {
+  margin: 0.6rem 0 0;
+  padding: 0.45rem 0.7rem;
+  min-height: 2.6em;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-inline-start: 4px solid var(--c, var(--border));
+  border-radius: var(--radius);
+}
+.basra-msg.fresh {
+  animation: basra-in 0.3s ease-out;
+}
+@keyframes basra-in {
+  from {
+    transform: translateY(-4px);
+    opacity: 0.3;
+  }
+}
+.basra-msg p {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.basra-last {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-top: 0.4rem;
+}
+.basra-arrow::before {
+  content: '→';
+  padding: 0 2px;
+  color: var(--muted);
+  font-weight: 800;
+}
+html[dir='rtl'] .basra-arrow::before {
+  content: '←';
+}
+
+/* ---------- my hand: stays in reach of the thumb ---------- */
+.basra-mine {
+  position: sticky;
+  bottom: max(0.5rem, env(safe-area-inset-bottom));
+  z-index: 4;
+  margin-top: 0.6rem;
+  padding: 0.6rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.basra-hand {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding-top: 12px;
+}
+.basra-hand-card {
+  padding: 0;
+  border: 0;
+  background: none;
+  border-radius: 8px;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease-out;
+  animation: basra-deal 0.4s ease-out backwards;
+}
+.basra-hand-card:nth-child(2) {
+  animation-delay: 0.07s;
+}
+.basra-hand-card:nth-child(3) {
+  animation-delay: 0.14s;
+}
+.basra-hand-card:nth-child(4) {
+  animation-delay: 0.21s;
+}
+@keyframes basra-deal {
+  from {
+    transform: translateY(30px) scale(0.8);
+    opacity: 0;
+  }
+}
+.basra-hand-card.picked {
+  transform: translateY(-12px);
+}
+.basra-hand-card.picked .basra-card {
+  box-shadow:
+    0 0 0 3px var(--c),
+    0 8px 16px rgb(0 0 0 / 0.25);
+}
+.basra-mine-row {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 0.6rem;
+}
+.basra-play {
+  flex: 1;
+  min-height: 52px;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+.basra-play.basra-hot:not(:disabled) {
+  background: var(--basra-gold);
+  border-color: var(--basra-gold);
+  color: #3a2a00;
+}
+
+/* ---------- the round's score ---------- */
+.basra-result {
+  margin-top: 0.75rem;
+}
+.basra-score {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+.basra-score th,
+.basra-score td {
+  padding: 0.35rem 0.4rem;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+.basra-score thead th {
+  font-weight: 800;
+  max-width: 6.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.basra-score thead i {
+  margin-inline-end: 0.3rem;
+}
+.basra-score tbody th {
+  text-align: start;
+  font-weight: 600;
+  color: var(--muted);
+}
+.basra-score td.zero {
+  color: var(--muted);
+  opacity: 0.6;
+}
+.basra-score tr.sum th,
+.basra-score tr.sum td,
+.basra-score tr.total th {
+  color: var(--text);
+  font-weight: 800;
+}
+.basra-score tr.total td {
+  font-size: 1.2rem;
+  font-weight: 900;
+  border-bottom: 0;
+}
+.basra-score tr.total th {
+  border-bottom: 0;
+}
+.basra-note {
+  margin: 0.6rem 0 0;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+.basra-result .btn {
+  margin-top: 0.8rem;
+}
+
+.basra .actions {
+  justify-content: center;
+}
+
+/* setup */
+.basra-setup h2 {
+  margin-top: 0;
+}
+.basra-choice-big {
+  font-size: 1.7rem;
+  font-weight: 900;
+  line-height: 1.1;
+  color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .basra *,
+  .basra *::before {
+    animation-duration: 0.01ms !important;
+    transition: none !important;
+  }
+}

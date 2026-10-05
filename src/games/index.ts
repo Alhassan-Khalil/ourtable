@@ -1,5 +1,6 @@
 import type { GameDef } from '../core/types';
 import type { Key } from '../i18n';
+import { basra } from './basra';
 import { battleship } from './battleship';
 import { categories } from './categories';
 import { connect4 } from './connect4';
@@ -13,7 +14,7 @@ import { uttt } from './uttt';
 import { wordle } from './wordle';
 
 /** Add a new game here. Order = order in the lobby. (Games for 2 use Player, games for 3 use Seat.) */
-export const GAME_LIST: GameDef<any, any, any, any, any>[] = [guessWho, truths, story, wordle, categories, ludo, battleship, connect4, dots, uttt, snakes];
+export const GAME_LIST: GameDef<any, any, any, any, any>[] = [guessWho, truths, story, wordle, categories, ludo, basra, battleship, connect4, dots, uttt, snakes];
 
 export const GAMES: Record<string, GameDef<any, any, any, any, any>> = Object.fromEntries(GAME_LIST.map((g) => [g.id, g]));
 
