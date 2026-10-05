@@ -10,6 +10,7 @@
   --accent-text: #ffffff;
   --p0: #f0506e; /* host seat */
   --p1: #14b8a6; /* guest seat */
+  --p2: #8b5cf6; /* third seat */
   --good: #16a34a;
   --bad: #dc2626;
   --board: #2f4b7c;
@@ -983,6 +984,12 @@ button:focus-visible {
 .score-chip.p1 i {
   background: var(--p1);
 }
+.score-chip.p2 i {
+  background: var(--p2);
+}
+.score-chip.turn.p2 {
+  border-color: var(--p2);
+}
 .score-chip.turn.p0 {
   border-color: var(--p0);
 }
@@ -1179,4 +1186,63 @@ button:focus-visible {
 }
 .game-card-star:active {
   transform: scale(0.9);
+}
+
+/* ---------- lobby: who's at the table, games that don't fit ---------- */
+.lobby-table {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.75rem;
+  font-size: 0.88rem;
+}
+.lobby-table-label {
+  color: var(--muted);
+  font-weight: 700;
+}
+.lobby-seat {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.lobby-seat i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.lobby-seat.p0 i {
+  background: var(--p0);
+}
+.lobby-seat.p1 i {
+  background: var(--p1);
+}
+.lobby-seat.p2 i {
+  background: var(--p2);
+}
+.lobby-seat.off {
+  color: var(--muted);
+  border-style: dashed;
+}
+.lobby-seat.off i {
+  opacity: 0.4;
+}
+.lobby-seat-remove {
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+  padding: 0 0.1rem;
+}
+.lobby-invite {
+  margin-inline-start: auto;
+}
+.game-card.nofit,
+.lobby-recent-pill.nofit {
+  opacity: 0.45;
 }

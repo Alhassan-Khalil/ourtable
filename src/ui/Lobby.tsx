@@ -3,6 +3,8 @@ import { KEYS, load, save } from '../core/storage';
 import type { GameDef } from '../core/types';
 import { COMING_SOON, GAME_LIST } from '../games';
 import { t } from '../i18n';
+import { Invite } from './Invite';
+import { fitsPlayers } from '../net/seats';
 import type { Session } from '../net/session';
 import { byTag, known, LOBBY_TAGS, pickRandom, pushRecent, toggleFavorite, type LobbyTag } from './lobbyModel';
 
@@ -22,6 +24,13 @@ export function rememberPlayed(id: string) {
 export function Lobby({ session }: { session: Session }) {
   const room = session.room.value;
   const isHost = session.role === 'host';
+  const mySeat = session.seat.value;
+  const [inviting, setInviting] = useState(false);
+
+  // Games fit the people at the table right now (before the first sync a guest assumes two).
+  const online = room.seats.length ? room.seats.filter((x) => x?.online).length : 2;
+  const fits = (g: GameDef) => fitsPlayers(g.players, online);
+  const freeSeat = room.seats.some((x) => x === null);
 
   const [tag, setTag] = useState<LobbyTag>(() => {
     const saved = load<LobbyTag>(KEYS.lobbyTag);
@@ -54,12 +63,12 @@ export function Lobby({ session }: { session: Session }) {
   const soon = tag === 'all' || tag === 'board' ? COMING_SOON : [];
 
   function surprise() {
-    const g = pickRandom(shown, recent[0] ?? null);
+    const g = pickRandom(shown.filter(fits), recent[0] ?? null);
     if (g) start(g.id);
   }
 
-  const card = (g: GameDef) => (
-    <GameCard key={g.id} g={g} fav={favs.includes(g.id)} canStart={isHost} onStart={() => start(g.id)} onFav={() => toggleFav(g.id)} />
+  const card = (g: GameDef<any, any, any, any, any>) => (
+    <GameCard key={g.id} g={g} fav={favs.includes(g.id)} canStart={isHost} fits={fits(g)} onStart={() => start(g.id)} onFav={() => toggleFav(g.id)} />
   );
 
   return (
@@ -72,7 +81,32 @@ export function Lobby({ session }: { session: Session }) {
           </button>
         )}
       </div>
-      {!isHost && <p class="muted small lobby-note">{t('hostChooses', room.names[0])}</p>}
+      {!isHost && <p class="muted small lobby-note">{t('hostChooses', room.seats[0]?.name ?? room.names[0])}</p>}
+
+      {room.seats.length > 0 && (
+        <div class="lobby-table">
+          <span class="lobby-table-label">{t('inRoom')}:</span>
+          {room.seats.map((x, seat) =>
+            x ? (
+              <span key={seat} class={`lobby-seat p${seat} ${x.online ? 'on' : 'off'}`}>
+                <i />
+                {seat === mySeat ? t('you') : x.name}
+                {session.role === 'host' && seat > 0 && !x.online && (
+                  <button type="button" class="lobby-seat-remove" aria-label={t('removePlayer', x.name)} onClick={() => session.role === 'host' && session.removeSeat(seat)}>
+                    ✕
+                  </button>
+                )}
+              </span>
+            ) : null,
+          )}
+          {isHost && freeSeat && room.seats.filter(Boolean).length > 1 && (
+            <button type="button" class="btn ghost small lobby-invite" onClick={() => setInviting(!inviting)}>
+              {t('inviteMore')}
+            </button>
+          )}
+        </div>
+      )}
+      {isHost && inviting && <Invite code={session.code} returning={false} partner="" title={t('inviteMore').replace('+ ', '')} />}
 
       <div class="lobby-tags" role="tablist" aria-label={t('categories')}>
         {LOBBY_TAGS.map((x) => (
@@ -87,7 +121,7 @@ export function Lobby({ session }: { session: Session }) {
           <h3 class="lobby-sec">🕘 {t('recent')}</h3>
           <div class="lobby-recent">
             {recentGames.map((g) => (
-              <button key={g.id} type="button" class="lobby-recent-pill" disabled={!isHost} onClick={() => start(g.id)}>
+              <button key={g.id} type="button" class={`lobby-recent-pill ${fits(g) ? '' : 'nofit'}`} disabled={!isHost || !fits(g)} onClick={() => start(g.id)}>
                 <span class="lobby-recent-art">
                   <g.Art />
                 </span>
@@ -132,25 +166,31 @@ function GameCard({
   g,
   fav,
   canStart,
+  fits,
   onStart,
   onFav,
 }: {
-  g: GameDef;
+  g: GameDef<any, any, any, any, any>;
   fav: boolean;
   canStart: boolean;
+  /** Playable by the number of people at the table now. */
+  fits: boolean;
   onStart: () => void;
   onFav: () => void;
 }) {
+  const [min, max] = g.players;
+  // Show the player count when it matters: games for 3, or a 2-player game when 3 are here.
+  const who = !fits ? t('onlyFor', max) : max > 2 ? t('playersCount', min, max) : null;
   return (
-    <div class="game-card">
-      <button type="button" class="game-card-main" disabled={!canStart} title={g.blurb} onClick={onStart}>
+    <div class={`game-card ${fits ? '' : 'nofit'}`}>
+      <button type="button" class="game-card-main" disabled={!canStart || !fits} title={g.blurb} onClick={onStart}>
         <span class="game-card-art">
           <g.Art />
         </span>
         <span class="game-card-body">
           <strong>{g.name}</strong>
           <span class="game-card-meta">
-            ⏱ {t('minutes', g.minutes)} · {g.tags.map((x) => t(`cat.${x}` as const)).join(' · ')}
+            ⏱ {t('minutes', g.minutes)} · {who ? `👥 ${who}` : g.tags.map((x) => t(`cat.${x}` as const)).join(' · ')}
           </span>
         </span>
       </button>

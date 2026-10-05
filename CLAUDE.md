@@ -21,8 +21,11 @@ src/ui/             Home, Room, shared bits
 src/i18n.ts         all UI text, ar + en
 ```
 
-- **Host-authoritative.** The host (player 0) holds the only real state and applies both players'
-  moves. The guest (player 1) sends moves and renders the view it receives.
+- **Host-authoritative.** The host (seat 0) holds the only real state and applies everyone's moves.
+  Guests (seats 1 and 2, max 3 people: `MAX_SEATS`) send moves and render the view they receive.
+- **Seats vs players.** A room has up to 3 seats (`src/net/seats.ts`: same device → same seat).
+  A game is played by `room.players` (the seats online when it started, in order); inside the game
+  they are players 0..n-1. Someone at the table but not in the current game sees a "watching" note.
 - **Hidden information lives in `GameDef.view(state, me)`.** Never put the opponent's secrets in a view.
 - **Sync sends only changed top-level view keys** (reference equality). Keep big static data (photo
   decks) under the same object reference between moves, or it is re-sent every move.
@@ -55,6 +58,16 @@ src/games/<id>/
 5. Register in `src/games/index.ts` (the only shared file a new game touches).
 
 Guess Who and Connect Four predate this and keep their texts in `src/i18n.ts`.
+
+### Games for 2 or 3 players
+
+- Declare `players: [2, 3]` (2-player games: `[2, 2]`), and type the game as
+  `GameDef<S, M, V, O, Seat>` (`Seat = 0 | 1 | 2` from core/types) instead of the default `Player`.
+- `init(opts, players)` receives how many are playing; `apply(state, move, by)` and
+  `view(state, me)` get the game-player index; `BoardProps.names` is in game order.
+- Colours per player: `--p0`, `--p1`, `--p2`. `ScoreBar` takes any number of names/scores.
+- `other()` is for 2-player games only; 3-player games compute the next player themselves.
+- Shared text helpers: `t('listJoin', names)` ("Sami and Rana" / «سامي ورنا»), `t('playersCount', 2, 3)`.
 
 ## Conventions
 

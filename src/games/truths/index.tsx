@@ -335,6 +335,7 @@ export const truths: GameDef<TruthsState, TruthsMove, TruthsView, null> = {
   icon: '🤥',
   tags: ['us'],
   minutes: 10,
+  players: [2, 2],
   Art,
   get blurb() {
     return tg('blurb');

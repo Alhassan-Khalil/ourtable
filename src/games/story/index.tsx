@@ -218,6 +218,7 @@ export const story: GameDef<StoryState, StoryMove, StoryView, null> = {
   icon: '📖',
   tags: ['us', 'words'],
   minutes: 10,
+  players: [2, 2],
   Art,
   get blurb() {
     return tg('blurb');

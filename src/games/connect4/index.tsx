@@ -67,6 +67,7 @@ export const connect4: GameDef<C4State, C4Move, C4State, null> = {
   icon: '🔴',
   tags: ['board', 'quick'],
   minutes: 5,
+  players: [2, 2],
   Art,
   get blurb() {
     return t('c4.blurb');

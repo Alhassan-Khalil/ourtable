@@ -343,6 +343,7 @@ export const wordle: GameDef<WordleState, WordleMove, WordleView, null> = {
   icon: '🔤',
   tags: ['words', 'quick'],
   minutes: 5,
+  players: [2, 2],
   Art,
   get blurb() {
     return tg('blurb');

@@ -265,6 +265,7 @@ export const guessWho: GameDef<GWState, GWMove, GWView, GWOptions> = {
   icon: '🕵️',
   tags: ['us'],
   minutes: 15,
+  players: [2, 2],
   Art,
   get blurb() {
     return t('gw.blurb');

@@ -89,7 +89,7 @@ export function Home({ onSession, inviteCode }: Props) {
                 <b class="mono" dir="ltr">
                   {formatCode(hostSave.code)}
                 </b>{' '}
-                {hostSave.guestName && t('withName', hostSave.guestName)}
+                {hostSave.guests.some(Boolean) && t('withName', t('listJoin', hostSave.guests.filter((g) => g !== null).map((g) => g.name)))}
               </span>
               <button class="btn primary small" onClick={() => onSession(HostSession.restore(hostSave))}>
                 {t('reopen')}

@@ -3,28 +3,40 @@ import { peerIdFor } from '../core/ids';
 import type { ToGuest, ToHost, Wire } from '../core/protocol';
 
 /**
- * The "phone line" between the two browsers.
+ * The "phone lines" between the browsers.
  *
- * PeerJS's free public server only introduces the two browsers (signalling). After that, all
- * messages go directly browser-to-browser over an encrypted WebRTC data channel.
+ * PeerJS's free public server only introduces the browsers (signalling). After that, all
+ * messages go directly browser-to-browser over encrypted WebRTC data channels.
  *
- * The host registers the peer id `ourtable-<CODE>` and waits. The guest dials that id.
- * One guest per room: the host remembers the first guest's clientId and rejects anyone else.
+ * The host registers the peer id `ourtable-<CODE>` and waits; each guest dials that id. The host
+ * keeps one line per guest seat (a star: guests never talk to each other). Which seat a guest
+ * gets is decided by the session (same device → same seat; the room has at most MAX_SEATS).
  */
 
 export type LinkStatus =
   | 'starting' // registering with the introduction server
-  | 'waiting' // host: room is open, partner not connected
+  | 'waiting' // host: room is open, no partner connected
   | 'connecting' // guest: trying to reach the host
-  | 'connected'
+  | 'connected' // host: at least one partner connected; guest: connected to the host
   | 'failed'; // gave up for good (room full, browser unsupported)
 
-export interface LinkHandlers {
-  /** `detail` is an i18n key ('link.*'), empty when there is nothing to explain. */
-  onStatus(status: LinkStatus, detail: string): void;
-  onMessage(msg: Wire): void;
-  /** Fired once the handshake is complete (host: guest accepted; guest: host said welcome). */
-  onConnected(): void;
+/** `detail` is always an i18n key ('link.*'), empty when there is nothing to explain. */
+type StatusFn = (status: LinkStatus, detail: string) => void;
+
+export interface HostHandlers {
+  onStatus: StatusFn;
+  /** A guest finished the handshake on `seat` (first time or reconnecting). */
+  onJoin(seat: number): void;
+  /** The guest on `seat` went away (closed, or silent too long). */
+  onLeave(seat: number): void;
+  onMessage(seat: number, msg: ToHost): void;
+}
+
+export interface GuestHandlers {
+  onStatus: StatusFn;
+  /** Handshake done; `seat` is my seat in the room (older hosts don't say: then it's 1). */
+  onConnected(seat: number): void;
+  onMessage(msg: ToGuest): void;
 }
 
 const HEARTBEAT_MS = 4_000;
@@ -48,17 +60,21 @@ function peerOptions() {
   return { config: { iceServers }, debug: 1 as const };
 }
 
+/** One data channel and when we last heard from the other side. */
+interface Line {
+  c: DataConnection;
+  lastSeen: number;
+}
+
 abstract class BaseLink {
   protected peer: Peer | null = null;
-  protected conn: DataConnection | null = null;
   protected closed = false;
   protected retryTimer: ReturnType<typeof setTimeout> | undefined;
-  private lastSeen = 0;
   private heartbeat: ReturnType<typeof setInterval> | undefined;
 
   constructor(
     readonly code: string,
-    protected readonly h: LinkHandlers,
+    private readonly status: StatusFn,
   ) {
     document.addEventListener('visibilitychange', this.onVisibility);
   }
@@ -68,58 +84,39 @@ abstract class BaseLink {
   };
 
   /**
-   * Phone unlocked / tab back in front. Timers were frozen while hidden, so check the line now
+   * Phone unlocked / tab back in front. Timers were frozen while hidden, so check the lines now
    * instead of waiting up to DEAD_AFTER_MS for the heartbeat to notice.
    */
   protected onVisible() {
     const peer = this.peer;
     if (peer && peer.disconnected && !peer.destroyed) peer.reconnect();
-    if (this.conn && Date.now() - this.lastSeen > DEAD_AFTER_MS) this.onDead();
+    this.checkLines();
   }
 
   abstract start(): void;
-  /** Called by the heartbeat when the partner went silent. */
-  protected abstract onDead(): void;
-
-  get connected() {
-    return !!this.conn?.open;
-  }
-
-  send(msg: Wire): boolean {
-    if (!this.conn?.open) return false;
-    this.conn.send(msg);
-    return true;
-  }
+  /** Ping every line; drop the ones that went silent. */
+  protected abstract checkLines(ping?: boolean): void;
 
   close() {
     this.closed = true;
     document.removeEventListener('visibilitychange', this.onVisibility);
     clearInterval(this.heartbeat);
     clearTimeout(this.retryTimer);
-    this.conn?.close();
     this.peer?.destroy();
-    this.conn = null;
     this.peer = null;
   }
 
   protected setStatus(status: LinkStatus, detail = '') {
-    if (!this.closed) this.h.onStatus(status, detail);
-  }
-
-  protected touch() {
-    this.lastSeen = Date.now();
+    if (!this.closed) this.status(status, detail);
   }
 
   protected startHeartbeat() {
     clearInterval(this.heartbeat);
-    this.heartbeat = setInterval(() => {
-      if (!this.conn) return;
-      if (Date.now() - this.lastSeen > DEAD_AFTER_MS) {
-        this.onDead();
-        return;
-      }
-      this.send({ t: 'ping' });
-    }, HEARTBEAT_MS);
+    this.heartbeat = setInterval(() => this.checkLines(true), HEARTBEAT_MS);
+  }
+
+  protected static silent(line: Line) {
+    return Date.now() - line.lastSeen > DEAD_AFTER_MS;
   }
 
   /** Shared recovery rule: PeerJS destroys the peer on fatal errors, merely disconnects on signalling loss. */
@@ -135,13 +132,38 @@ abstract class BaseLink {
 }
 
 export class HostLink extends BaseLink {
+  /** seat → line */
+  private readonly lines = new Map<number, Line>();
+
   constructor(
     code: string,
-    h: LinkHandlers,
-    /** Decide whether a guest may take the second seat. */
-    private readonly accept: (hello: Extract<ToHost, { t: 'hello' }>) => boolean,
+    private readonly h: HostHandlers,
+    /** Which seat this guest may take, or null if the room is full. */
+    private readonly accept: (hello: Extract<ToHost, { t: 'hello' }>) => number | null,
   ) {
-    super(code, h);
+    super(code, h.onStatus);
+  }
+
+  /** Seats with an open line right now. */
+  get connectedSeats(): number[] {
+    return [...this.lines.entries()].filter(([, l]) => l.c.open).map(([seat]) => seat);
+  }
+
+  isConnected(seat: number) {
+    return !!this.lines.get(seat)?.c.open;
+  }
+
+  send(seat: number, msg: Wire): boolean {
+    const line = this.lines.get(seat);
+    if (!line?.c.open) return false;
+    line.c.send(msg);
+    return true;
+  }
+
+  override close() {
+    for (const { c } of this.lines.values()) c.close();
+    this.lines.clear();
+    super.close();
   }
 
   start() {
@@ -150,10 +172,7 @@ export class HostLink extends BaseLink {
     this.peer = peer;
     this.startHeartbeat();
 
-    peer.on('open', () => {
-      if (this.connected) this.setStatus('connected');
-      else this.setStatus('waiting', 'link.roomOpen');
-    });
+    peer.on('open', () => this.report());
     peer.on('connection', (c) => this.incoming(c));
     peer.on('disconnected', () => this.recoverPeer(peer, () => this.start()));
     peer.on('error', (e) => {
@@ -173,58 +192,81 @@ export class HostLink extends BaseLink {
     });
   }
 
+  /** Status from the number of partners on the line. */
+  private report(detail = 'link.roomOpen') {
+    if (this.connectedSeats.length > 0) this.setStatus('connected');
+    else this.setStatus('waiting', detail);
+  }
+
   private incoming(c: DataConnection) {
-    let accepted = false;
+    let seat: number | null = null;
     c.on('data', (raw) => {
       const msg = raw as ToHost;
-      if (!accepted) {
+      if (seat === null) {
         if (msg?.t !== 'hello') return;
-        if (!this.accept(msg)) {
+        seat = this.accept(msg);
+        if (seat === null) {
           c.send({ t: 'full' } satisfies ToGuest);
           setTimeout(() => c.close(), 500);
           return;
         }
-        accepted = true;
-        const old = this.conn;
-        this.conn = c;
-        if (old && old !== c) old.close();
-        this.touch();
-        this.send({ t: 'welcome' });
-        this.setStatus('connected');
-        this.h.onConnected();
+        const old = this.lines.get(seat);
+        this.lines.set(seat, { c, lastSeen: Date.now() });
+        if (old && old.c !== c) old.c.close(); // the same device reconnected
+        c.send({ t: 'welcome', seat } satisfies ToGuest);
+        this.report();
+        this.h.onJoin(seat);
         return;
       }
-      if (c !== this.conn) return;
-      this.touch();
-      if (msg.t !== 'ping') this.h.onMessage(msg);
+      const line = this.lines.get(seat);
+      if (line?.c !== c) return;
+      line.lastSeen = Date.now();
+      if (msg.t !== 'ping') this.h.onMessage(seat, msg);
     });
     c.on('close', () => {
-      if (c !== this.conn) return;
-      this.conn = null;
-      this.setStatus('waiting', 'link.partnerLeft');
+      if (seat !== null && this.lines.get(seat)?.c === c) this.drop(seat, 'link.partnerLeft');
     });
     c.on('error', (e) => console.warn('[host] connection error', e));
   }
 
-  protected onDead() {
-    const c = this.conn;
-    this.conn = null;
-    c?.close();
-    this.setStatus('waiting', 'link.partnerLost');
+  private drop(seat: number, detail: string) {
+    const line = this.lines.get(seat);
+    this.lines.delete(seat);
+    line?.c.close();
+    this.report(detail);
+    this.h.onLeave(seat);
+  }
+
+  protected checkLines(ping = false) {
+    for (const [seat, line] of [...this.lines]) {
+      if (BaseLink.silent(line)) this.drop(seat, 'link.partnerLost');
+      else if (ping && line.c.open) line.c.send({ t: 'ping' } satisfies ToGuest);
+    }
   }
 }
 
 export class GuestLink extends BaseLink {
+  private line: Line | null = null;
   private pending: DataConnection | null = null;
   private dialTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor(
     code: string,
-    h: LinkHandlers,
+    private readonly h: GuestHandlers,
     private readonly clientId: string,
     private readonly name: string,
   ) {
-    super(code, h);
+    super(code, h.onStatus);
+  }
+
+  get connected() {
+    return !!this.line?.c.open;
+  }
+
+  send(msg: ToHost): boolean {
+    if (!this.line?.c.open) return false;
+    this.line.c.send(msg);
+    return true;
   }
 
   override close() {
@@ -235,6 +277,8 @@ export class GuestLink extends BaseLink {
     const p = this.pending;
     this.pending = null;
     p?.close();
+    this.line?.c.close();
+    this.line = null;
     super.close();
   }
 
@@ -271,9 +315,22 @@ export class GuestLink extends BaseLink {
 
   protected override onVisible() {
     super.onVisible();
-    if (!this.conn) {
+    if (!this.line) {
       clearTimeout(this.retryTimer);
       this.dial(); // back on screen: try right away
+    }
+  }
+
+  protected checkLines(ping = false) {
+    const line = this.line;
+    if (!line) return;
+    if (BaseLink.silent(line)) {
+      this.line = null;
+      line.c.close();
+      this.setStatus('connecting', 'link.connLost');
+      this.redial();
+    } else if (ping && line.c.open) {
+      line.c.send({ t: 'ping' } satisfies ToHost);
     }
   }
 
@@ -305,7 +362,7 @@ export class GuestLink extends BaseLink {
     });
     c.on('data', (raw) => {
       const msg = raw as ToGuest;
-      this.touch();
+      if (this.line?.c === c) this.line.lastSeen = Date.now();
       if (msg.t === 'full') {
         this.setStatus('failed', 'link.roomFull');
         this.close();
@@ -314,28 +371,20 @@ export class GuestLink extends BaseLink {
       if (msg.t === 'welcome' && this.pending === c) {
         clearTimeout(this.dialTimer);
         this.pending = null;
-        this.conn = c;
+        this.line = { c, lastSeen: Date.now() };
         this.setStatus('connected');
-        this.h.onConnected();
+        this.h.onConnected(typeof msg.seat === 'number' ? msg.seat : 1);
         return;
       }
-      if (c === this.conn && msg.t !== 'ping') this.h.onMessage(msg);
+      if (this.line?.c === c && msg.t !== 'ping') this.h.onMessage(msg);
     });
     c.on('close', () => {
-      if (c !== this.conn && c !== this.pending) return;
-      if (c === this.conn) this.conn = null;
-      if (c === this.pending) this.pending = null;
+      if (this.line?.c !== c && this.pending !== c) return;
+      if (this.line?.c === c) this.line = null;
+      if (this.pending === c) this.pending = null;
       this.setStatus('connecting', 'link.connLost');
       this.redial();
     });
     c.on('error', (e) => console.warn('[guest] connection error', e));
-  }
-
-  protected onDead() {
-    const c = this.conn;
-    this.conn = null;
-    c?.close();
-    this.setStatus('connecting', 'link.connLost');
-    this.redial();
   }
 }

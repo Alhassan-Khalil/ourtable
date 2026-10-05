@@ -1,7 +1,14 @@
 import type { ComponentType } from 'preact';
 
+/** A player in a 2-player game. */
 export type Player = 0 | 1;
 export const other = (p: Player): Player => (p === 0 ? 1 : 0);
+
+/** A player in a game for up to three (game-internal index, 0..players-1). */
+export type Seat = 0 | 1 | 2;
+
+/** A room holds at most this many people (the host is seat 0). */
+export const MAX_SEATS = 3;
 
 /**
  * Thrown by GameDef.apply for an illegal move. The message is an i18n key (e.g. 'err.notYourTurn'),
@@ -9,10 +16,12 @@ export const other = (p: Player): Player => (p === 0 ? 1 : 0);
  */
 export class GameError extends Error {}
 
-export interface BoardProps<V, M> {
+export interface BoardProps<V, M, P extends number = Player> {
   view: V;
-  me: Player;
-  names: [string, string];
+  /** My index among the players of THIS game (0..players-1). */
+  me: P;
+  /** The players' names, in game order. */
+  names: string[];
   send: (move: M) => void;
   rematch: () => void;
   toLobby: () => void;
@@ -37,7 +46,7 @@ export interface SetupProps<O> {
  * The sync layer only re-sends top-level keys whose reference changed.
  * State and views must be JSON-serialisable.
  */
-export interface GameDef<S = any, M = any, V = any, O = any> {
+export interface GameDef<S = any, M = any, V = any, O = any, P extends number = Player> {
   id: string;
   name: string;
   icon: string;
@@ -48,15 +57,18 @@ export interface GameDef<S = any, M = any, V = any, O = any> {
   minutes: number;
   /** The illustration on the lobby card (a small SVG, about 120 × 64, using theme colours). */
   Art: ComponentType;
+  /** How many people can play: [min, max], within 2..MAX_SEATS. Most games are [2, 2]. */
+  players: [number, number];
   /** Optional host-only screen shown before the game starts (e.g. choose a photo deck). */
   Setup?: ComponentType<SetupProps<O>>;
-  init(opts: O): S;
+  /** `players` = how many people are playing (within the `players` range). */
+  init(opts: O, players: number): S;
   /**
    * Optional: rebuild the init options from a state, for "Play again". Games whose options are big
    * (a photo deck already inside the state) use this so the host doesn't store them twice.
    */
   rematchOpts?(state: S): O;
-  apply(state: S, move: M, by: Player): S;
-  view(state: S, me: Player): V;
-  Board: ComponentType<BoardProps<V, M>>;
+  apply(state: S, move: M, by: P): S;
+  view(state: S, me: P): V;
+  Board: ComponentType<BoardProps<V, M, P>>;
 }

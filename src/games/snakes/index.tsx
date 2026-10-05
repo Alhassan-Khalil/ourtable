@@ -287,6 +287,7 @@ export const snakes: GameDef<SnakesState, SnakesMove, SnakesState, null> = {
   icon: '🐍',
   tags: ['board', 'quick'],
   minutes: 5,
+  players: [2, 2],
   Art,
   get blurb() {
     return tg('blurb');

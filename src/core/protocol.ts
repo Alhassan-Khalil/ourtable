@@ -1,11 +1,22 @@
-/** Messages on the wire between the two browsers. Host = player 0, guest = player 1. */
+/** Messages on the wire between the browsers. The host is seat 0; guests are seats 1 and 2. */
+
+/** Someone sitting at the table. */
+export interface SeatInfo {
+  name: string;
+  online: boolean;
+}
 
 export interface RoomMeta {
   screen: 'lobby' | 'setup' | 'game';
   gameId: string | null;
   /** Increments every time a new game starts (used to reset local UI state). */
   gameKey: number;
-  names: [string, string];
+  /** Names by seat ('' = empty seat). Also kept for clients from before rooms of three. */
+  names: string[];
+  /** By seat; seat 0 is the host. null = empty seat. */
+  seats: (SeatInfo | null)[];
+  /** The seats playing the current game, in game-player order (null outside a game). */
+  players: number[] | null;
 }
 
 export type ToHost =
@@ -16,7 +27,7 @@ export type ToHost =
   | { t: 'ping' };
 
 export type ToGuest =
-  | { t: 'welcome' }
+  | { t: 'welcome'; seat?: number }
   | { t: 'full' }
   | {
       t: 'sync';

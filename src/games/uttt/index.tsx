@@ -121,6 +121,7 @@ export const uttt: GameDef<UtttState, UtttMove, UtttState, null> = {
   icon: '❌',
   tags: ['board'],
   minutes: 10,
+  players: [2, 2],
   Art,
   get blurb() {
     return tg('blurb');

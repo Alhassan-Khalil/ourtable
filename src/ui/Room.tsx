@@ -1,11 +1,10 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect } from 'preact/hooks';
 import { formatCode } from '../core/ids';
 import { GAMES } from '../games';
 import { t, tKey } from '../i18n';
 import type { Session } from '../net/session';
+import { Invite } from './Invite';
 import { Lobby, rememberPlayed } from './Lobby';
-
-export const inviteLink = (code: string) => `${location.origin}${location.pathname}#/join/${code}`;
 
 export function Room({ session, onLeave }: { session: Session; onLeave: () => void }) {
   const room = session.room.value;
@@ -14,8 +13,13 @@ export function Room({ session, onLeave }: { session: Session; onLeave: () => vo
   const detail = session.detail.value;
   const toast = session.toast.value;
   const isHost = session.role === 'host';
-  const partner = room.names[isHost ? 1 : 0];
+  const mySeat = session.seat.value;
+  const me = session.me.value;
   const def = room.gameId ? GAMES[room.gameId] : undefined;
+  const nameAt = (seat: number) => room.seats[seat]?.name ?? room.names[seat] ?? '…';
+  // Everyone else at the table who is online right now (for "With Sami and Rana").
+  const others = room.seats.map((x, seat) => (x && seat !== mySeat && x.online ? x.name : null)).filter((x): x is string => !!x);
+  const firstGuest = room.seats.slice(1).find(Boolean)?.name ?? room.names[1] ?? '';
 
   // Every new game (including "Play again") goes to the front of "Played recently" on this phone.
   const playing = room.screen === 'game' ? room.gameId : null;
@@ -46,16 +50,23 @@ export function Room({ session, onLeave }: { session: Session; onLeave: () => vo
         <def.Setup onStart={(opts) => session.startGame(def.id, opts)} onCancel={() => session.toLobby()} />
       ) : (
         <section class="panel center">
-          <p>{t('settingUp', room.names[0], def.name)}</p>
+          <p>{t('settingUp', nameAt(0), def.name)}</p>
         </section>
       );
+  } else if (room.players && me < 0) {
+    // Someone joined while the others play a game they're not in.
+    body = (
+      <section class="panel center">
+        <p>{t('watching', t('listJoin', room.players.map(nameAt)), def.name)}</p>
+      </section>
+    );
   } else {
     body = view ? (
       <def.Board
         key={room.gameKey}
         view={view}
-        me={session.me}
-        names={room.names}
+        me={me}
+        names={(room.players ?? [0, 1]).map(nameAt)}
         send={(m: unknown) => session.move(m)}
         rematch={() => session.rematch()}
         toLobby={() => session.toLobby()}
@@ -76,7 +87,7 @@ export function Room({ session, onLeave }: { session: Session; onLeave: () => vo
         </div>
         <div class={`status-pill ${status}`} title={tKey(detail)}>
           <i />
-          <span>{status === 'connected' ? t('withPartner', partner) : t(`status.${status}` as const)}</span>
+          <span>{status === 'connected' && others.length ? t('withPartner', t('listJoin', others)) : t(`status.${status}` as const)}</span>
         </div>
         <div class="room-buttons">
           {room.screen === 'game' && (
@@ -94,8 +105,8 @@ export function Room({ session, onLeave }: { session: Session; onLeave: () => vo
       {session.role === 'host' && status !== 'connected' && status !== 'failed' && (
         <Invite
           code={session.code}
-          returning={!!session.guestName}
-          partner={partner}
+          returning={session.hasGuests}
+          partner={firstGuest}
           onNewDevice={() => {
             if (session.role !== 'host') return;
             session.resetSeat();
@@ -112,77 +123,5 @@ export function Room({ session, onLeave }: { session: Session; onLeave: () => vo
         </div>
       )}
     </div>
-  );
-}
-
-function Invite({
-  code,
-  returning,
-  partner,
-  onNewDevice,
-}: {
-  code: string;
-  returning: boolean;
-  partner: string;
-  onNewDevice: () => void;
-}) {
-  const [copied, setCopied] = useState(false);
-  const link = inviteLink(code);
-
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(link);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      prompt(t('copyPrompt'), link);
-    }
-  }
-
-  async function share() {
-    try {
-      await navigator.share({ title: t('appName'), text: t('shareText'), url: link });
-    } catch {
-      /* cancelled */
-    }
-  }
-
-  return (
-    <section class={`invite ${returning ? 'compact' : ''}`}>
-      {returning ? (
-        <p>{t('returning', partner)}</p>
-      ) : (
-        <>
-          <h2>{t('inviteTitle')}</h2>
-          <p class="muted">{t('inviteHint')}</p>
-        </>
-      )}
-      <div class="invite-row">
-        <input
-          class="mono"
-          dir="ltr"
-          readOnly
-          value={link}
-          onFocus={(e) => e.currentTarget.select()}
-          aria-label={t('inviteLink')}
-        />
-        <button class="btn primary" onClick={copy}>
-          {copied ? t('copied') : t('copy')}
-        </button>
-        {'share' in navigator && (
-          <button class="btn" onClick={share}>
-            {t('share')}
-          </button>
-        )}
-      </div>
-      {returning && (
-        <div class="new-device">
-          <button class="btn ghost small" onClick={onNewDevice}>
-            {t('newDevice')}
-          </button>
-          <span class="muted small">{t('newDeviceHint', partner)}</span>
-        </div>
-      )}
-    </section>
   );
 }

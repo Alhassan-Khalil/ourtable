@@ -305,6 +305,7 @@ export const battleship: GameDef<BattleState, BattleMove, BattleView, null> = {
   icon: '🚢',
   tags: ['board'],
   minutes: 15,
+  players: [2, 2],
   Art,
   get blurb() {
     return tg('blurb');
