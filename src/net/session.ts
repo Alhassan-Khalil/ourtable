@@ -187,7 +187,8 @@ export class HostSession extends BaseSession {
   private fromGuest(seat: number, m: ToHost) {
     if (m.t === 'move') this.apply(m.move, seat);
     else if (m.t === 'rematch') this.rematch(seat);
-    else if (m.t === 'lobby') this.toLobby();
+    // Only someone playing (or setting up) can stop the current game, not someone watching it.
+    else if (m.t === 'lobby' && (this.s.screen !== 'game' || this.s.players?.includes(seat))) this.toLobby();
   }
 
   private tell(seat: number, message: string) {

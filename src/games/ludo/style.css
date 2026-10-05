@@ -1,0 +1,254 @@
+/* Ludo. Classes are prefixed "ludo-" so games never clash. Theme colours only, so dark mode just works. */
+.ludo {
+  max-width: 520px;
+  margin: 0 auto;
+  --ludo-line: color-mix(in srgb, var(--muted) 35%, var(--surface));
+}
+
+/* --c is "this corner's / this player's colour"; unused corners are a neutral grey */
+.ludo-p0 {
+  --c: var(--p0);
+}
+.ludo-p1 {
+  --c: var(--p1);
+}
+.ludo-p2 {
+  --c: var(--p2);
+}
+.ludo-none {
+  --c: color-mix(in srgb, var(--muted) 40%, var(--surface));
+}
+
+.ludo-board {
+  direction: ltr; /* the dir attribute does nothing on <svg>; SVG text and geometry need the CSS property */
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* yards */
+.ludo-yard-bg {
+  fill: var(--c);
+}
+.ludo-yard-in {
+  fill: var(--surface);
+}
+.ludo-spot {
+  fill: color-mix(in srgb, var(--c) 16%, var(--surface));
+  stroke: color-mix(in srgb, var(--c) 55%, var(--surface));
+  stroke-width: 0.6px;
+}
+
+/* track, home columns, centre */
+.ludo-cell {
+  fill: var(--surface);
+  stroke: var(--ludo-line);
+  stroke-width: 0.5px;
+}
+.ludo-cell.start {
+  fill: var(--c);
+}
+.ludo-star {
+  fill: color-mix(in srgb, var(--muted) 60%, var(--surface));
+}
+.ludo-homecell {
+  fill: color-mix(in srgb, var(--c) 72%, var(--surface));
+  stroke: var(--ludo-line);
+  stroke-width: 0.5px;
+}
+.ludo-tri {
+  fill: var(--c);
+  stroke: var(--surface);
+  stroke-width: 0.6px;
+  stroke-linejoin: round;
+}
+
+/* where a movable token would land */
+.ludo-dest {
+  fill: color-mix(in srgb, var(--c) 22%, transparent);
+  stroke: var(--c);
+  stroke-width: 0.8px;
+  stroke-dasharray: 1.6 1.2;
+  pointer-events: none;
+}
+
+/* tokens: they step square by square (each step is a short glide), and fly home when captured */
+.ludo-token {
+  transition: transform 0.14s ease-out;
+  pointer-events: none;
+}
+.ludo-token.yard {
+  transition-duration: 0.5s;
+}
+.ludo-halo {
+  fill: var(--surface);
+}
+.ludo-piece {
+  fill: var(--c);
+  stroke: color-mix(in srgb, var(--c) 55%, var(--text));
+  stroke-width: 0.7px;
+}
+.ludo-cap {
+  fill: color-mix(in srgb, var(--c) 45%, var(--surface));
+}
+
+/* my tokens that can move: a turning dashed ring, and a little hop */
+.ludo-ring {
+  fill: color-mix(in srgb, var(--c) 20%, transparent);
+  stroke: var(--text);
+  stroke-width: 1px;
+  stroke-dasharray: 2.2 1.4;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ludo-turn 3s linear infinite;
+}
+@keyframes ludo-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.ludo-token.can .ludo-bob,
+.ludo-token.win .ludo-bob {
+  animation: ludo-hop 0.55s ease-in-out infinite alternate;
+}
+@keyframes ludo-hop {
+  to {
+    transform: translateY(-1.4px);
+  }
+}
+
+/* invisible tap areas, on top of everything */
+.ludo-hit {
+  fill: transparent;
+  cursor: pointer;
+  outline: none;
+}
+.ludo-hit:hover {
+  fill: color-mix(in srgb, var(--text) 6%, transparent);
+}
+.ludo-hit:focus-visible {
+  stroke: var(--accent);
+  stroke-width: 1.2px;
+}
+
+/* roll area: stays in reach of the thumb while the board scrolls */
+.ludo-controls {
+  position: sticky;
+  bottom: max(0.5rem, env(safe-area-inset-bottom));
+  z-index: 4;
+  margin-top: 0.75rem;
+  padding: 0.6rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.ludo-msg {
+  margin: 0;
+  padding-inline-start: 0.6rem;
+  border-inline-start: 4px solid var(--c, var(--border));
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.35;
+  min-height: 2.7em; /* two lines, so the roll button doesn't jump */
+}
+.ludo-roll-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.7rem;
+  margin-top: 0.6rem;
+}
+.ludo-roll {
+  flex: 1;
+  min-height: 64px;
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+.ludo-roll:not(:disabled) {
+  animation: ludo-ping 1.8s ease-out infinite;
+}
+@keyframes ludo-ping {
+  from {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent);
+  }
+  to {
+    box-shadow: 0 0 0 14px transparent;
+  }
+}
+
+/* the die: 3 × 3 grid of pips, tumbles in whenever a new roll arrives */
+.ludo-die {
+  flex: none;
+  display: grid;
+  grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+  width: 64px;
+  height: 64px;
+  padding: 8px;
+  background: var(--surface);
+  border: 3px solid var(--c, var(--border));
+  border-radius: 14px;
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--text) 15%, transparent);
+}
+.ludo-die i {
+  place-self: center;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+}
+.ludo-die i.on {
+  background: var(--text);
+}
+.ludo-die.blank::after {
+  content: '?';
+  grid-area: 2 / 2;
+  place-self: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--muted);
+}
+.ludo-die.roll {
+  animation: ludo-tumble 0.55s ease-out;
+}
+@keyframes ludo-tumble {
+  0% {
+    transform: rotate(-220deg) scale(0.55);
+  }
+  60% {
+    transform: rotate(14deg) scale(1.12);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+.ludo .actions {
+  justify-content: center;
+}
+
+/* setup: a row of tokens on each choice */
+.ludo-setup h2 {
+  margin-top: 0;
+}
+.ludo-setup .ludo-choice-tokens {
+  display: flex;
+  gap: 6px;
+  min-height: 36px;
+  align-items: center;
+  margin-bottom: 0.4rem;
+}
+.ludo-choice-tokens i {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: inset 0 0 0 6px color-mix(in srgb, var(--accent) 55%, var(--surface));
+}

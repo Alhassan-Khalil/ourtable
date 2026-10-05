@@ -90,7 +90,7 @@ export function Room({ session, onLeave }: { session: Session; onLeave: () => vo
           <span>{status === 'connected' && others.length ? t('withPartner', t('listJoin', others)) : t(`status.${status}` as const)}</span>
         </div>
         <div class="room-buttons">
-          {room.screen === 'game' && (
+          {room.screen === 'game' && me >= 0 && (
             <button class="btn ghost small" onClick={() => confirm(t('confirmStopGame')) && session.toLobby()}>
               {t('games')}
             </button>
