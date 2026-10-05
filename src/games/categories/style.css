@@ -1,0 +1,487 @@
+/* Categories. Classes are prefixed "cat-" so games never clash. */
+.cat {
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+/* each player's colour as --pc (the seat colours are --p0 / --p1 / --p2) */
+.cat-p0 {
+  --pc: var(--p0);
+}
+.cat-p1 {
+  --pc: var(--p1);
+}
+.cat-p2 {
+  --pc: var(--p2);
+}
+
+/* ---------- the letter ---------- */
+.cat-head {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin: 0 0 0.75rem;
+}
+.cat-letter {
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: 4.5rem;
+  block-size: 4.5rem;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 3rem;
+  font-weight: 800;
+  line-height: 1.5;
+  box-shadow: var(--shadow);
+}
+.cat-head-text {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+.cat-sub {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.cat-round {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.cat-hint {
+  margin: 0 0 0.85rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.cat-note {
+  margin: 0.5rem 0 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* ---------- player chips (progress while writing, ready list while checking) ---------- */
+.cat-progress,
+.cat-ready-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  list-style: none;
+}
+.cat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  max-inline-size: 100%;
+  padding: 0.3rem 0.75rem;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: border-color 0.15s;
+}
+.cat-chip i {
+  flex: none;
+  inline-size: 0.8rem;
+  block-size: 0.8rem;
+  border-radius: 50%;
+  background: var(--pc);
+}
+.cat-chip.done {
+  border-color: var(--pc);
+}
+.cat-chip-name {
+  min-width: 0;
+  max-inline-size: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cat-count,
+.cat-chip b {
+  font-variant-numeric: tabular-nums;
+}
+.cat-pips {
+  display: inline-flex;
+  gap: 3px;
+}
+.cat-pips b {
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border-radius: 50%;
+  background: var(--border);
+}
+.cat-pips b.on {
+  background: var(--pc);
+}
+
+/* ---------- writing ---------- */
+.cat-fields {
+  display: grid;
+  gap: 0.7rem;
+}
+.cat-field {
+  display: grid;
+  gap: 0.3rem;
+}
+.cat-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+.cat-input {
+  display: block;
+  width: 100%;
+  min-height: 52px;
+  margin: 0;
+  padding: 0.6rem 0.85rem;
+  font: inherit;
+  font-size: 18px; /* 16px+ stops iOS zooming into the field on focus */
+  color: var(--text);
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  transition: border-color 0.15s;
+}
+.cat-input::placeholder {
+  color: var(--muted);
+  opacity: 0.7;
+}
+.cat-input:focus-visible {
+  border-color: var(--accent);
+  outline: 3px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  outline-offset: 1px;
+}
+.cat-field.warn .cat-input {
+  border-color: var(--bad);
+}
+.cat-warn {
+  color: var(--bad);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.cat-stop {
+  -webkit-appearance: none;
+  appearance: none;
+  /* stays in reach at the bottom of the screen while the five boxes are filled */
+  position: sticky;
+  bottom: calc(0.75rem + env(safe-area-inset-bottom));
+  z-index: 5;
+  display: block;
+  width: 100%;
+  min-height: 60px;
+  margin: 1rem 0 0;
+  padding: 0.7rem 1rem;
+  font: inherit;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #fff;
+  background: var(--bad);
+  border: 0;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    transform 0.08s,
+    opacity 0.15s;
+}
+.cat-stop:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.cat-stop:disabled {
+  /* solid (not see-through) so it doesn't muddle the fields it floats over */
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  box-shadow: none;
+  cursor: default;
+}
+
+/* ---------- checking the answers ---------- */
+.cat-stopped {
+  margin: 0 0 0.6rem;
+  padding: 0.35rem 0.9rem;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: center;
+}
+.cat-cards {
+  display: grid;
+  gap: 0.75rem;
+}
+.cat-card {
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.cat-card-head {
+  margin: 0;
+  padding: 0.5rem 0.85rem;
+  background: var(--surface-2);
+  font-size: 0.95rem;
+}
+.cat-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 44px;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  background: color-mix(in srgb, var(--pc) 7%, var(--surface));
+  border-top: 1px solid var(--border);
+  border-inline-start: 4px solid var(--pc);
+}
+.cat-card-head + .cat-row {
+  border-top: 0;
+}
+.cat-main {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+.cat-who {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.cat-who i {
+  flex: none;
+  inline-size: 0.6rem;
+  block-size: 0.6rem;
+  border-radius: 50%;
+  background: var(--pc);
+}
+.cat-who bdi {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cat-answer {
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.cat-row.out .cat-answer {
+  color: var(--muted);
+}
+.cat-row.out:not(.empty) .cat-answer {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+.cat-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.15rem;
+}
+.cat-tag {
+  padding: 0.02rem 0.5rem;
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.cat-pts {
+  min-inline-size: 2.7rem;
+  padding: 0.15rem 0.5rem;
+  border: 2px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.cat-pts-10 {
+  color: var(--text);
+  background: color-mix(in srgb, var(--good) 18%, var(--surface));
+  border-color: var(--good);
+}
+.cat-pts-5 {
+  color: var(--text);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.cat-reject,
+.cat-reject-slot {
+  inline-size: 44px;
+  block-size: 44px;
+}
+.cat-reject {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+  padding: 0;
+  font: inherit;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--bad);
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+.cat-reject[aria-pressed='true'] {
+  color: #fff;
+  background: var(--bad);
+  border-color: var(--bad);
+}
+
+.cat-ready {
+  margin-top: 1.25rem;
+  padding: 0.9rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.cat-ready-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+}
+.cat-ready-list {
+  margin-bottom: 0.85rem;
+}
+.cat-ready-btn {
+  min-height: 52px;
+  font-size: 1.1rem;
+}
+
+/* ---------- the end ---------- */
+.cat-tied {
+  margin: 0 0 0.85rem;
+  text-align: center;
+  color: var(--muted);
+  font-weight: 700;
+}
+.cat-section-title {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+.cat-table {
+  display: grid;
+  gap: 0.35rem;
+}
+.cat-tr {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) repeat(var(--rounds, 5), 2.1rem) 3.4rem;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.45rem 0.6rem;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+}
+.cat-tr.lead {
+  border-color: var(--pc);
+}
+.cat-th {
+  padding-block: 0;
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.cat-td {
+  min-width: 0;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.cat-td-name {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 700;
+  text-align: start;
+}
+.cat-td-name i {
+  flex: none;
+  inline-size: 0.8rem;
+  block-size: 0.8rem;
+  border-radius: 50%;
+  background: var(--pc);
+}
+.cat-td-name bdi {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cat-td-total {
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+.cat-th .cat-td-total {
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.cat .actions {
+  justify-content: center;
+}
+
+/* ---------- setup (host) ---------- */
+.cat-setup-label {
+  margin: 1rem 0 0.5rem;
+  font-size: 0.95rem;
+}
+.cat-opts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+.cat-opt {
+  -webkit-appearance: none;
+  appearance: none;
+  display: grid;
+  gap: 0.15rem;
+  justify-items: start;
+  min-height: 76px;
+  margin: 0;
+  padding: 0.8rem 1rem;
+  font: inherit;
+  text-align: start;
+  color: inherit;
+  background: var(--surface-2);
+  border: 2px solid transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+.cat-opt.on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.cat-opt-sample {
+  font-size: 1.4rem;
+  font-weight: 800;
+  line-height: 1.4;
+}

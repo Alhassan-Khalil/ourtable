@@ -104,7 +104,7 @@ const en = {
   'link.hostOffline': 'Waiting for the room to open. Is your partner online?',
   'link.cantReach': 'Can’t reach the room yet. Retrying…',
   'link.connLost': 'Connection lost. Reconnecting…',
-  'link.roomFull': 'This room is full (three players). If you switched device, ask the host to tap “Let a new device join”.',
+  'link.roomFull': 'This room is full (three players). If you switched device, ask the room’s creator to remove your old seat (✕ next to your name).',
 
   'toast.saveFailed': 'Couldn’t save the game on this device (storage full). It still works while open.',
   'toast.notConnected': 'Not connected right now. Try again in a moment.',
@@ -286,7 +286,7 @@ const ar: Dict = {
   'link.hostOffline': 'بانتظار فتح الغرفة. هل شريكك متصل؟',
   'link.cantReach': 'تعذّر الوصول إلى الغرفة حالياً. إعادة المحاولة…',
   'link.connLost': 'انقطع الاتصال. جارٍ إعادة الاتصال…',
-  'link.roomFull': 'هذه الغرفة مكتملة (ثلاثة لاعبين). إذا غيّرت جهازك، اطلب من صاحب الغرفة الضغط على «السماح بجهاز جديد».',
+  'link.roomFull': 'هذه الغرفة مكتملة (ثلاثة لاعبين). إذا غيّرت جهازك، اطلب من صاحب الغرفة إزالة مقعدك القديم (✕ بجانب اسمك).',
 
   'toast.saveFailed': 'تعذّر حفظ اللعبة على هذا الجهاز (المساحة ممتلئة). ستعمل ما دامت الصفحة مفتوحة.',
   'toast.notConnected': 'غير متصل الآن. حاول بعد لحظات.',
