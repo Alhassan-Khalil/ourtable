@@ -1,8 +1,9 @@
-import { useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import { formatCode } from '../core/ids';
-import { COMING_SOON, GAME_LIST, GAMES } from '../games';
+import { GAMES } from '../games';
 import { t, tKey } from '../i18n';
 import type { Session } from '../net/session';
+import { Lobby, rememberPlayed } from './Lobby';
 
 export const inviteLink = (code: string) => `${location.origin}${location.pathname}#/join/${code}`;
 
@@ -15,6 +16,12 @@ export function Room({ session, onLeave }: { session: Session; onLeave: () => vo
   const isHost = session.role === 'host';
   const partner = room.names[isHost ? 1 : 0];
   const def = room.gameId ? GAMES[room.gameId] : undefined;
+
+  // Every new game (including "Play again") goes to the front of "Played recently" on this phone.
+  const playing = room.screen === 'game' ? room.gameId : null;
+  useEffect(() => {
+    if (playing) rememberPlayed(playing);
+  }, [playing, room.gameKey]);
 
   function leave() {
     if (confirm(isHost ? t('confirmCloseRoom') : t('confirmLeave'))) onLeave();
@@ -32,37 +39,7 @@ export function Room({ session, onLeave }: { session: Session; onLeave: () => vo
       </section>
     );
   } else if (room.screen === 'lobby' || !def) {
-    body = (
-      <section class="lobby">
-        <h2>{t('pickGame')}</h2>
-        {!isHost && <p class="muted">{t('hostChooses', room.names[0])}</p>}
-        <div class="game-grid">
-          {GAME_LIST.map((g) => (
-            <button
-              key={g.id}
-              class="game-card"
-              disabled={!isHost}
-              onClick={() => session.role === 'host' && session.openGame(g.id)}
-            >
-              <span class="game-icon">{g.icon}</span>
-              <span class="game-text">
-                <strong>{g.name}</strong>
-                <span class="muted small">{g.blurb}</span>
-              </span>
-            </button>
-          ))}
-          {COMING_SOON.map((g) => (
-            <div key={g.name} class="game-card soon">
-              <span class="game-icon">{g.icon}</span>
-              <span class="game-text">
-                <strong>{t(g.name)}</strong>
-                <span class="muted small">{t('comingSoon')}</span>
-              </span>
-            </div>
-          ))}
-        </div>
-      </section>
-    );
+    body = <Lobby session={session} />;
   } else if (room.screen === 'setup') {
     body =
       session.role === 'host' && def.Setup ? (

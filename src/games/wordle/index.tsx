@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { other, type BoardProps, type GameDef } from '../../core/types';
 import { t, tKey } from '../../i18n';
 import { EndActions, ScoreBar, TurnBanner } from '../../ui/common';
+import { Art } from './art';
 import {
   apply,
   clean,
@@ -340,6 +341,9 @@ export const wordle: GameDef<WordleState, WordleMove, WordleView, null> = {
     return tg('name');
   },
   icon: '🔤',
+  tags: ['words', 'quick'],
+  minutes: 5,
+  Art,
   get blurb() {
     return tg('blurb');
   },

@@ -45,4 +45,7 @@ export const KEYS = {
   host: 'ourtable.host.v1',
   guest: 'ourtable.guest.v1',
   lastDeck: 'ourtable.guesswho.lastDeck.v1',
+  favorites: 'ourtable.favorites',
+  recent: 'ourtable.recent',
+  lobbyTag: 'ourtable.lobbyTag',
 } as const;

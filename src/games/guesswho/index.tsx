@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'preact/hooks';
 import { other, type BoardProps, type GameDef } from '../../core/types';
 import { lang, t } from '../../i18n';
 import { EndActions, TurnBanner } from '../../ui/common';
+import { Art } from './art';
 import { QUICK_QUESTIONS } from './faces';
 import { apply, init, MAX_QUESTION, view, type Card, type GWMove, type GWOptions, type GWState, type GWView } from './logic';
 import { Setup } from './Setup';
@@ -262,6 +263,9 @@ export const guessWho: GameDef<GWState, GWMove, GWView, GWOptions> = {
     return t('gw.name');
   },
   icon: '🕵️',
+  tags: ['us'],
+  minutes: 15,
+  Art,
   get blurb() {
     return t('gw.blurb');
   },

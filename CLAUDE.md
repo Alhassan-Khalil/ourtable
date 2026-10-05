@@ -40,12 +40,15 @@ src/games/<id>/
   logic.test.ts  vitest, next to the logic
   strings.ts     export const tg = defineStrings('<id>', en, ar): both languages, same keys
   style.css      classes prefixed "<id>-" (imported by index.tsx)
+  art.tsx        the lobby card drawing: <ArtFrame> (src/ui/art.tsx), 120 × 64, theme colours via style
   index.tsx      GameDef + Board component
 ```
 
 1. GameError keys: shared ones from `src/i18n.ts` (`err.over`, `err.notYourTurn`, `err.generic`, …)
    or the game's own as `'<id>.err.something'` (defined in strings.ts as `'err.something'`).
 2. Name/blurb in `GameDef` are getters calling `tg(...)`, so they follow the language switch.
+   `tags` (lobby categories: us / words / board / quick), `minutes` (typical round) and `Art` are
+   required; the lobby (src/ui/Lobby.tsx) uses them for the filters, the duration chip and the card.
 3. Shared UI in `src/ui/common.tsx`: `TurnBanner`, `ScoreBar`, `EndActions`. Shared texts via `t()`:
    `youWin`, `oppWins(n)`, `oppTurn(n)`, `draw`, `you`, `yes`, `no`, `cancel`.
 4. Randomness (dice, shuffles) is fine inside `apply`/`init`: only the host runs them.

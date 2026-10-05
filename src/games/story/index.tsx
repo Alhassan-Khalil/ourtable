@@ -3,6 +3,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { other, type BoardProps, type GameDef, type Player } from '../../core/types';
 import { t } from '../../i18n';
 import { EndActions, ScoreBar, TurnBanner } from '../../ui/common';
+import { Art } from './art';
 import {
   apply,
   chars,
@@ -215,6 +216,9 @@ export const story: GameDef<StoryState, StoryMove, StoryView, null> = {
     return tg('name');
   },
   icon: '📖',
+  tags: ['us', 'words'],
+  minutes: 10,
+  Art,
   get blurb() {
     return tg('blurb');
   },

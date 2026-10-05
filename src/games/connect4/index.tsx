@@ -1,6 +1,7 @@
 import type { BoardProps, GameDef } from '../../core/types';
 import { t } from '../../i18n';
 import { EndActions, TurnBanner } from '../../ui/common';
+import { Art } from './art';
 import { apply, COLS, init, ROWS, type C4Move, type C4State } from './logic';
 
 function Board({ view, me, names, send, rematch, toLobby }: BoardProps<C4State, C4Move>) {
@@ -64,6 +65,9 @@ export const connect4: GameDef<C4State, C4Move, C4State, null> = {
     return t('c4.name');
   },
   icon: '🔴',
+  tags: ['board', 'quick'],
+  minutes: 5,
+  Art,
   get blurb() {
     return t('c4.blurb');
   },

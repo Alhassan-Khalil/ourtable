@@ -18,6 +18,9 @@ export interface BoardProps<V, M> {
   toLobby: () => void;
 }
 
+/** Lobby categories. A game can have several. */
+export type GameTag = 'us' | 'words' | 'board' | 'quick';
+
 export interface SetupProps<O> {
   onStart: (opts: O) => void;
   onCancel: () => void;
@@ -39,6 +42,12 @@ export interface GameDef<S = any, M = any, V = any, O = any> {
   name: string;
   icon: string;
   blurb: string;
+  /** Lobby categories ('us' = personal games for the two of you). */
+  tags: GameTag[];
+  /** Typical length of one round, in minutes (shown on the lobby card). */
+  minutes: number;
+  /** The illustration on the lobby card (a small SVG, about 120 × 64, using theme colours). */
+  Art: ComponentType;
   /** Optional host-only screen shown before the game starts (e.g. choose a photo deck). */
   Setup?: ComponentType<SetupProps<O>>;
   init(opts: O): S;

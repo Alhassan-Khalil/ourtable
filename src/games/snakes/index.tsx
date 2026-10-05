@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { other, type BoardProps, type GameDef, type Player } from '../../core/types';
 import { t } from '../../i18n';
 import { EndActions, ScoreBar, TurnBanner } from '../../ui/common';
+import { Art } from './art';
 import { apply, init, LADDERS, LAST, SNAKES, squareToCell, type SnakesMove, type SnakesState } from './logic';
 import { tg } from './strings';
 import './style.css';
@@ -284,6 +285,9 @@ export const snakes: GameDef<SnakesState, SnakesMove, SnakesState, null> = {
     return tg('name');
   },
   icon: '🐍',
+  tags: ['board', 'quick'],
+  minutes: 5,
+  Art,
   get blurb() {
     return tg('blurb');
   },

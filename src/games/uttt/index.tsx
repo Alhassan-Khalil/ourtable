@@ -1,6 +1,7 @@
 import { other, type BoardProps, type GameDef, type Player } from '../../core/types';
 import { t } from '../../i18n';
 import { EndActions, ScoreBar, TurnBanner } from '../../ui/common';
+import { Art } from './art';
 import { apply, BOARDS, init, type UtttMove, type UtttState } from './logic';
 import { tg } from './strings';
 import './style.css';
@@ -118,6 +119,9 @@ export const uttt: GameDef<UtttState, UtttMove, UtttState, null> = {
     return tg('name');
   },
   icon: '❌',
+  tags: ['board'],
+  minutes: 10,
+  Art,
   get blurb() {
     return tg('blurb');
   },

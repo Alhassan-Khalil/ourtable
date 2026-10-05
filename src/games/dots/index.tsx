@@ -1,6 +1,7 @@
 import { other, type BoardProps, type GameDef } from '../../core/types';
 import { t } from '../../i18n';
 import { EndActions, ScoreBar, TurnBanner } from '../../ui/common';
+import { Art } from './art';
 import { apply, init, type DotsMove, type DotsState } from './logic';
 import { tg } from './strings';
 import './style.css';
@@ -122,6 +123,9 @@ export const dots: GameDef<DotsState, DotsMove, DotsState, null> = {
     return tg('name');
   },
   icon: '🔲',
+  tags: ['board'],
+  minutes: 10,
+  Art,
   get blurb() {
     return tg('blurb');
   },
